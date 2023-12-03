@@ -87,17 +87,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("# Group");
             print_grid(&slice);
 
-            let single: String = Regex::new(r"[^0-9]+")?
-                .replace_all(
-                    &slice
-                        .iter()
-                        .map(|x| x.iter().collect::<String>())
-                        .collect::<Vec<String>>()
-                        .join(" "),
-                    " ",
-                )
-                .trim()
-                .to_string();
+            let single: String = slice
+                .iter()
+                .map(|x| x.iter().collect::<String>())
+                .collect::<Vec<String>>()
+                .join(" ");
 
             println!("single: {}", single);
 

@@ -60,15 +60,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     print_grid(&visited);
 
-    let mut single: String = visited
+    let single: String = visited
         .iter()
         .map(|x| x.iter().collect::<String>())
         .collect::<Vec<String>>()
         .join(" ");
-    single = Regex::new(r"[^0-9]+")?
-        .replace_all(&single, " ")
-        .trim()
-        .to_string();
 
     println!("{}", single);
 
