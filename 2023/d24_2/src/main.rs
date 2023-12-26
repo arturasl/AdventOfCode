@@ -57,7 +57,6 @@ fn main() {
     let ext_int = |x: &Real| {
         let r = m.eval(x, true).unwrap().as_real().unwrap();
         assert_eq!(r.1, 1);
-        assert_eq!(r.1, 1);
         r.0
     };
     println!("{}", rp.iter().map(|r| ext_int(r)).sum::<i64>());
