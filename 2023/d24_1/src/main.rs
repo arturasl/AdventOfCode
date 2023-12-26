@@ -1,11 +1,13 @@
 use itertools::Itertools;
+use num::bigint::*;
+use num::rational::*;
 use std::io;
 use std::thread;
 
 #[derive(Debug)]
 struct Dir {
-    a: f64,
-    b: f64,
+    a: BigRational,
+    b: BigRational,
 }
 
 #[derive(Debug)]
@@ -14,34 +16,42 @@ struct Line {
     dir: Dir,
 }
 
-const MI: f64 = 200000000000000f64;
-const MA: f64 = 400000000000000f64;
-// const MI: f64 = 7f64;
-// const MA: f64 = 27f64;
+fn big_ratio(num: i64) -> BigRational {
+    BigRational::from_integer(BigInt::from(num))
+}
 
 fn solve(lhs: &Line, rhs: &Line) -> bool {
+    let mi = big_ratio(200000000000000);
+    let ma = big_ratio(400000000000000);
+    // let mi = big_ratioional::from_integer(7);
+    // let ma = big_ratioional::from_integer(27);
+    let zero = big_ratio(0);
+
     // A + B * v = C + D * u
     // A x D + B x D * v = C x D
     // B x D * v = C x D - A x D
     // v = (C x D - A x D) / B x D
-    let cd = rhs.point.a * rhs.dir.b - rhs.point.b * rhs.dir.a;
-    let ad = lhs.point.a * rhs.dir.b - lhs.point.b * rhs.dir.a;
-    let bd = lhs.dir.a * rhs.dir.b - lhs.dir.b * rhs.dir.a;
-    if bd.abs() < 0.000001 {
+    let cd = &rhs.point.a * &rhs.dir.b - &rhs.point.b * &rhs.dir.a;
+    let ad = &lhs.point.a * &rhs.dir.b - &lhs.point.b * &rhs.dir.a;
+    let bd = &lhs.dir.a * &rhs.dir.b - &lhs.dir.b * &rhs.dir.a;
+    if bd == zero {
         return false;
     }
 
     let v = (cd - ad) / bd;
-    if v < 0f64 {
+    if v < zero {
         return false;
     }
 
-    let r = (lhs.point.a + lhs.dir.a * v, lhs.point.b + lhs.dir.b * v);
-    let u = (r.0 - rhs.point.a) / rhs.dir.a;
-    if u < 0f64 {
+    let r = (
+        &lhs.point.a + &lhs.dir.a * &v,
+        &lhs.point.b + &lhs.dir.b * v,
+    );
+    let u = (&r.0 - &rhs.point.a) / &rhs.dir.a;
+    if u < zero {
         return false;
     }
-    return MI <= r.0 && r.0 <= MA && MI <= r.1 && r.1 <= MA;
+    return mi <= r.0 && r.0 <= ma && mi <= r.1 && r.1 <= ma;
 }
 
 fn run() {
@@ -55,7 +65,7 @@ fn run() {
                 .map(|part| {
                     let (a, b, _) = part
                         .split(',')
-                        .map(|p| p.parse::<f64>().unwrap())
+                        .map(|p| big_ratio(p.parse::<i64>().unwrap()))
                         .collect_tuple()
                         .unwrap();
                     Dir { a, b }
