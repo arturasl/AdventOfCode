@@ -26,11 +26,7 @@ fn walk(pos: (usize, usize), prev_pos: (usize, usize), map: &Vec<Vec<char>>) -> 
             continue;
         }
         let w = walk(next_pos, pos, map).map(|r| r + 1).or(result);
-        if result.is_none() {
-            result = w;
-        } else {
-            result = result.zip(w).map(|(a, b)| a.max(b));
-        }
+        result = w.or(result).zip(result.or(w)).map(|(a, b)| a.max(b));
     }
 
     result
