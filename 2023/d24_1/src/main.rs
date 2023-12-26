@@ -6,7 +6,6 @@ use std::thread;
 struct Dir {
     a: f64,
     b: f64,
-    c: f64,
 }
 
 #[derive(Debug)]
@@ -54,12 +53,12 @@ fn run() {
             let (point, dir) = line
                 .split('@')
                 .map(|part| {
-                    let (a, b, c) = part
+                    let (a, b, _) = part
                         .split(',')
                         .map(|p| p.parse::<f64>().unwrap())
                         .collect_tuple()
                         .unwrap();
-                    Dir { a, b, c }
+                    Dir { a, b }
                 })
                 .collect_tuple()
                 .unwrap();
