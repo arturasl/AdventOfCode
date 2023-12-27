@@ -3,3 +3,5 @@
 **/Cargo.lock
 **/*.rs.bk
 **/large.in
+**/*.png
+**/*.dot
