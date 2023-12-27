@@ -125,17 +125,13 @@ impl Map {
         let map: Vec<Vec<char>> = Map::expand(
             io::stdin()
                 .lines()
-                .map(|x| {
-                    x.unwrap()
-                        .trim()
-                        .replace("^", ".")
-                        .replace(">", ".")
-                        .replace("v", ".")
-                        .replace("<", ".")
-                        .to_string()
-                })
+                .map(|x| x.unwrap().trim().to_string())
                 .filter(|line| !line.is_empty())
-                .map(|line| line.chars().collect::<Vec<char>>())
+                .map(|line| {
+                    line.chars()
+                        .map(|ch| if "^>v<".contains(ch) { '.' } else { ch })
+                        .collect::<Vec<char>>()
+                })
                 .collect(),
             '#',
         );
