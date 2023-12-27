@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashSet};
+use std::collections::HashMap;
 use std::io;
 use std::iter::Iterator;
 use std::thread;
@@ -7,181 +7,219 @@ type Pos = (usize, usize);
 
 #[derive(Debug)]
 struct Edge {
+    from_idx: usize,
+    to_idx: usize,
     dist: usize,
-    to: Pos,
 }
 
 #[derive(Debug)]
 struct Node {
-    name: Pos,
-    children: Vec<Edge>,
-}
-
-impl Node {
-    fn new(pos: Pos) -> Node {
-        Node {
-            name: pos,
-            children: Vec::new(),
-        }
-    }
-}
-
-fn look_around(pos: &Pos) -> impl Iterator<Item = Pos> + '_ {
-    [(-1, 0), (0, 1), (1, 0), (0, -1)].into_iter().map(|oft| {
-        (
-            ((pos.0 as i64) + oft.0) as usize,
-            ((pos.1 as i64) + oft.1) as usize,
-        )
-    })
-}
-
-fn expand(map: Vec<Vec<char>>, default: char) -> Vec<Vec<char>> {
-    let cols: usize = map[0].len();
-
-    vec![vec![default; cols + 2]]
-        .into_iter()
-        .chain(map.into_iter().map(|r| {
-            vec![default]
-                .into_iter()
-                .chain(r)
-                .chain(vec![default])
-                .collect::<Vec<char>>()
-        }))
-        .chain(vec![vec![default; cols + 2]])
-        .collect::<Vec<Vec<char>>>()
-}
-
-fn walk(
+    idx: usize,
     pos: Pos,
-    mut parent_pos: Pos,
-    mut dist_to_parent: usize,
-    graph: &mut BTreeMap<Pos, Node>,
-    map: &mut Vec<Vec<char>>,
-) {
-    if "#OF".contains(map[pos.0][pos.1]) {
-        return;
-    }
-
-    let at_junction: bool = look_around(&pos)
-        .map(|p| ".JO".contains(map[p.0][p.1]) as usize)
-        .sum::<usize>()
-        >= 3
-        || pos == (map.len() - 2, map[0].len() - 3);
-
-    if at_junction {
-        if map[pos.0][pos.1] == '.' {
-            graph.insert(pos, Node::new(pos));
-        }
-        let cur_node = graph.get_mut(&pos).unwrap();
-        cur_node.children.push(Edge {
-            dist: dist_to_parent,
-            to: parent_pos,
-        });
-        let parent_node = graph.get_mut(&parent_pos).unwrap();
-        parent_node.children.push(Edge {
-            dist: dist_to_parent,
-            to: pos,
-        });
-
-        dist_to_parent = 0;
-        parent_pos = pos;
-    }
-
-    let juntion_finished = look_around(&pos)
-        .map(|p| ".".contains(map[p.0][p.1]) as usize)
-        .sum::<usize>()
-        == 0;
-
-    map[pos.0][pos.1] = {
-        if at_junction {
-            if juntion_finished {
-                'F'
-            } else {
-                'J'
-            }
-        } else {
-            'O'
-        }
-    };
-
-    for next_pos in look_around(&pos) {
-        if next_pos == parent_pos {
-            continue;
-        }
-        walk(next_pos, parent_pos, dist_to_parent + 1, graph, map);
-    }
+    edge_idxs: Vec<usize>,
 }
 
-fn print_map(map: &Vec<Vec<char>>) {
-    for r in map {
-        println!("{}", r.iter().collect::<String>());
-    }
-    println!();
+struct Graph {
+    nodes: Vec<Node>,
+    pos_to_node_idx: HashMap<Pos, usize>,
+    unique_edges: Vec<Edge>,
 }
 
-fn print_graphviz(graph: &BTreeMap<Pos, Node>) {
-    println!("graph G{{");
-
-    let node_name = |node: &Pos| format!("n_{}_{}", node.0, node.1);
-
-    for node in graph.values() {
-        println!(
-            "{} [label=\"({}; {})\"];",
-            node_name(&node.name),
-            node.name.0,
-            node.name.1
-        );
+impl Graph {
+    fn new() -> Graph {
+        Graph {
+            nodes: Vec::new(),
+            pos_to_node_idx: HashMap::new(),
+            unique_edges: Vec::new(),
+        }
     }
 
-    let mut printed: HashSet<(Pos, Pos)> = HashSet::new();
-    for node in graph.values() {
-        for edge in &node.children {
-            if printed.contains(&(node.name, edge.to)) {
-                continue;
-            }
-            printed.insert((node.name, edge.to));
-            printed.insert((edge.to, node.name));
+    fn upsert_node(self: &mut Self, pos: &Pos) -> &mut Node {
+        if let Some(prev_node_idx) = self.pos_to_node_idx.get(pos) {
+            return &mut self.nodes[*prev_node_idx];
+        }
+        let len = self.nodes.len();
+        self.nodes.push(Node {
+            idx: len,
+            pos: pos.clone(),
+            edge_idxs: Vec::new(),
+        });
+        &mut self.nodes[len]
+    }
+
+    fn add_edge(self: &mut Self, from_idx: usize, to_idx: usize, dist: usize) {
+        self.unique_edges.push(Edge {
+            from_idx: from_idx.min(to_idx),
+            to_idx: from_idx.max(to_idx),
+            dist: dist,
+        });
+
+        self.nodes[from_idx]
+            .edge_idxs
+            .push(self.unique_edges.len() - 1);
+        self.nodes[to_idx]
+            .edge_idxs
+            .push(self.unique_edges.len() - 1);
+    }
+
+    fn print_graphviz(self: &Self) {
+        let node_name =
+            |idx: usize| format!("n_{}_{}", self.nodes[idx].pos.0, self.nodes[idx].pos.1);
+
+        println!("graph G{{");
+        for node in &self.nodes {
+            println!(
+                "{} [label=\"({}; {})\"];",
+                node_name(node.idx),
+                node.pos.0,
+                node.pos.1
+            );
+        }
+
+        for edge in &self.unique_edges {
             println!(
                 "{} -- {} [label=\"{}\"];",
-                node_name(&node.name),
-                node_name(&edge.to),
+                node_name(edge.from_idx),
+                node_name(edge.to_idx),
                 edge.dist
             );
         }
+
+        println!("}}");
+    }
+}
+
+struct Map {
+    map: Vec<Vec<char>>,
+    start_pos: (usize, usize),
+    end_pos: (usize, usize),
+}
+
+impl Map {
+    fn expand(map: Vec<Vec<char>>, default: char) -> Vec<Vec<char>> {
+        let cols: usize = map[0].len();
+
+        vec![vec![default; cols + 2]]
+            .into_iter()
+            .chain(map.into_iter().map(|r| {
+                vec![default]
+                    .into_iter()
+                    .chain(r)
+                    .chain(vec![default])
+                    .collect::<Vec<char>>()
+            }))
+            .chain(vec![vec![default; cols + 2]])
+            .collect::<Vec<Vec<char>>>()
     }
 
-    println!("}}");
+    fn look_around(pos: &Pos) -> impl Iterator<Item = Pos> + '_ {
+        [(-1, 0), (0, 1), (1, 0), (0, -1)].into_iter().map(|oft| {
+            (
+                ((pos.0 as i64) + oft.0) as usize,
+                ((pos.1 as i64) + oft.1) as usize,
+            )
+        })
+    }
+
+    fn read() -> Map {
+        let map: Vec<Vec<char>> = Map::expand(
+            io::stdin()
+                .lines()
+                .map(|x| {
+                    x.unwrap()
+                        .trim()
+                        .replace("^", ".")
+                        .replace(">", ".")
+                        .replace("v", ".")
+                        .replace("<", ".")
+                        .to_string()
+                })
+                .filter(|line| !line.is_empty())
+                .map(|line| line.chars().collect::<Vec<char>>())
+                .collect(),
+            '#',
+        );
+        let rows = map.len();
+        let cols = map[0].len();
+        assert!(map[1][1..4] == ['#', '.', '#']);
+        assert!(map[rows - 2][cols - 4..] == ['#', '.', '#', '#']);
+
+        Map {
+            map,
+            start_pos: (1, 2),
+            end_pos: (rows - 2, cols - 3),
+        }
+    }
+
+    fn walk(
+        self: &mut Self,
+        pos: Pos,
+        mut parent_node_idx: usize,
+        mut dist_to_parent_node: usize,
+        graph: &mut Graph,
+    ) {
+        if "#OF".contains(self.map[pos.0][pos.1]) {
+            return;
+        }
+
+        let at_junction: bool = Map::look_around(&pos)
+            .map(|p| ".JO".contains(self.map[p.0][p.1]) as usize)
+            .sum::<usize>()
+            >= 3
+            || pos == self.end_pos;
+
+        if at_junction {
+            let cur_node_idx = graph.upsert_node(&pos).idx;
+            graph.add_edge(cur_node_idx, parent_node_idx, dist_to_parent_node);
+
+            dist_to_parent_node = 0;
+            parent_node_idx = cur_node_idx;
+        }
+
+        let juntion_finished = Map::look_around(&pos)
+            .map(|p| ".".contains(self.map[p.0][p.1]) as usize)
+            .sum::<usize>()
+            == 0;
+
+        self.map[pos.0][pos.1] = {
+            if at_junction {
+                if juntion_finished {
+                    'F'
+                } else {
+                    'J'
+                }
+            } else {
+                'O'
+            }
+        };
+
+        for next_pos in Map::look_around(&pos) {
+            if next_pos == graph.nodes[parent_node_idx].pos {
+                continue;
+            }
+            self.walk(next_pos, parent_node_idx, dist_to_parent_node + 1, graph);
+        }
+    }
+
+    fn into_graph(self: &mut Self) -> Graph {
+        let mut graph: Graph = Graph::new();
+        graph.upsert_node(&self.start_pos);
+        self.walk(self.start_pos, 0, 0, &mut graph);
+        graph
+    }
+
+    fn print(self: &Self) {
+        for r in &self.map {
+            println!("{}", r.iter().collect::<String>());
+        }
+        println!();
+    }
 }
 
 fn run() {
-    let mut map: Vec<Vec<char>> = expand(
-        io::stdin()
-            .lines()
-            .map(|x| {
-                x.unwrap()
-                    .trim()
-                    .replace("^", ".")
-                    .replace(">", ".")
-                    .replace("v", ".")
-                    .replace("<", ".")
-                    .to_string()
-            })
-            .filter(|line| !line.is_empty())
-            .map(|line| line.chars().collect::<Vec<char>>())
-            .collect(),
-        '#',
-    );
-    assert!(map[1][1..4] == ['#', '.', '#']);
-    assert!(map[map.len() - 2][map[0].len() - 4..] == ['#', '.', '#', '#']);
-
-    let start_pos = (1, 2);
-
-    let mut graph: BTreeMap<Pos, Node> = BTreeMap::new();
-    graph.insert(start_pos, Node::new(start_pos));
-    walk(start_pos, start_pos, 0, &mut graph, &mut map);
-
-    // print_map(&map);
-    print_graphviz(&graph);
+    let mut map = Map::read();
+    let graph = map.into_graph();
+    graph.print_graphviz();
 }
 
 fn main() {
