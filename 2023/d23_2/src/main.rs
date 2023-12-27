@@ -154,50 +154,41 @@ impl Map {
     fn walk(
         self: &mut Self,
         pos: Pos,
-        mut parent_node_idx: usize,
-        mut dist_to_parent_node: usize,
+        mut parent_idx: usize,
+        mut dist_to_parent: usize,
         graph: &mut Graph,
     ) {
-        if "#OF".contains(self.map[pos.0][pos.1]) {
+        if "#O".contains(self.map[pos.0][pos.1]) {
             return;
         }
 
         let at_junction: bool = Map::look_around(&pos)
-            .map(|p| ".JO".contains(self.map[p.0][p.1]) as usize)
+            .map(|p| ".O".contains(self.map[p.0][p.1]) as usize)
             .sum::<usize>()
-            >= 3
-            || pos == self.end_pos;
-
-        if at_junction {
+            >= 3;
+        if at_junction || pos == self.end_pos {
             let cur_node_idx = graph.upsert_node(&pos).idx;
-            graph.add_edge(cur_node_idx, parent_node_idx, dist_to_parent_node);
+            graph.add_edge(cur_node_idx, parent_idx, dist_to_parent);
 
-            dist_to_parent_node = 0;
-            parent_node_idx = cur_node_idx;
+            dist_to_parent = 0;
+            parent_idx = cur_node_idx;
         }
 
-        let juntion_finished = Map::look_around(&pos)
+        let final_junction = Map::look_around(&pos)
             .map(|p| ".".contains(self.map[p.0][p.1]) as usize)
             .sum::<usize>()
             == 0;
+        if at_junction && final_junction {
+            return;
+        }
 
-        self.map[pos.0][pos.1] = {
-            if at_junction {
-                if juntion_finished {
-                    'F'
-                } else {
-                    'J'
-                }
-            } else {
-                'O'
-            }
-        };
+        self.map[pos.0][pos.1] = if at_junction { 'J' } else { 'O' };
 
         for next_pos in Map::look_around(&pos) {
-            if next_pos == graph.nodes[parent_node_idx].pos {
+            if next_pos == graph.nodes[parent_idx].pos {
                 continue;
             }
-            self.walk(next_pos, parent_node_idx, dist_to_parent_node + 1, graph);
+            self.walk(next_pos, parent_idx, dist_to_parent + 1, graph);
         }
     }
 
