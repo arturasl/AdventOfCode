@@ -34,24 +34,24 @@ impl Graph {
         }
     }
 
-    fn upsert_node(self: &mut Self, pos: &Pos) -> &mut Node {
+    fn upsert_node(&mut self, pos: &Pos) -> &mut Node {
         if let Some(prev_node_idx) = self.pos_to_node_idx.get(pos) {
             return &mut self.nodes[*prev_node_idx];
         }
         let len = self.nodes.len();
         self.nodes.push(Node {
             idx: len,
-            pos: pos.clone(),
+            pos: *pos,
             edge_idxs: Vec::new(),
         });
         &mut self.nodes[len]
     }
 
-    fn add_edge(self: &mut Self, from_idx: usize, to_idx: usize, dist: usize) {
+    fn add_edge(&mut self, from_idx: usize, to_idx: usize, dist: usize) {
         self.unique_edges.push(Edge {
             from_idx: from_idx.min(to_idx),
             to_idx: from_idx.max(to_idx),
-            dist: dist,
+            dist,
         });
 
         self.nodes[from_idx]
@@ -62,7 +62,8 @@ impl Graph {
             .push(self.unique_edges.len() - 1);
     }
 
-    fn print_graphviz(self: &Self) {
+    #[allow(dead_code)]
+    fn print_graphviz(&self) {
         let node_name =
             |idx: usize| format!("n_{}_{}", self.nodes[idx].pos.0, self.nodes[idx].pos.1);
 
@@ -148,7 +149,7 @@ impl Map {
     }
 
     fn walk(
-        self: &mut Self,
+        &mut self,
         pos: Pos,
         mut parent_idx: usize,
         mut dist_to_parent: usize,
@@ -188,14 +189,15 @@ impl Map {
         }
     }
 
-    fn into_graph(self: &mut Self) -> Graph {
+    fn destructively_to_graph(&mut self) -> Graph {
         let mut graph: Graph = Graph::new();
         graph.upsert_node(&self.start_pos);
         self.walk(self.start_pos, 0, 0, &mut graph);
         graph
     }
 
-    fn print(self: &Self) {
+    #[allow(dead_code)]
+    fn print(&self) {
         for r in &self.map {
             println!("{}", r.iter().collect::<String>());
         }
@@ -205,7 +207,7 @@ impl Map {
 
 fn run() {
     let mut map = Map::read();
-    let graph = map.into_graph();
+    let graph = map.destructively_to_graph();
     graph.print_graphviz();
 }
 
