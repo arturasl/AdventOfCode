@@ -87,10 +87,17 @@ impl Graph {
         println!("graph G{{");
         for node in &self.nodes {
             println!(
-                "  {} [label=\"({}; {})\"];",
+                "  {} [label=\"({}; {})\",color=\"{}\"];",
                 node_name(node.idx),
                 node.pos.0,
-                node.pos.1
+                node.pos.1,
+                if node.idx == self.start_node_idx {
+                    "green"
+                } else if node.idx == self.end_node_idx {
+                    "red"
+                } else {
+                    "black"
+                }
             );
         }
 
@@ -277,19 +284,19 @@ fn run() {
     let graph = map.destructively_to_graph();
     graph.print_graphviz();
 
-    let mut result: usize = 0;
-    let mut visited_edges = FixedBitSet::with_capacity(graph.unique_edges.len());
-    let mut cache: HashSet<FixedBitSet> = HashSet::new();
-    let mut enters: usize = 0;
-    find_longest(
-        graph.start_node_idx,
-        &mut result,
-        &mut visited_edges,
-        &mut enters,
-        &mut cache,
-        &graph,
-    );
-    println!("Result: {result}");
+    // let mut result: usize = 0;
+    // let mut visited_edges = FixedBitSet::with_capacity(graph.unique_edges.len());
+    // let mut cache: HashSet<FixedBitSet> = HashSet::new();
+    // let mut enters: usize = 0;
+    // find_longest(
+    //     graph.start_node_idx,
+    //     &mut result,
+    //     &mut visited_edges,
+    //     &mut enters,
+    //     &mut cache,
+    //     &graph,
+    // );
+    // println!("Result: {result}");
 }
 
 fn main() {
