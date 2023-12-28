@@ -65,18 +65,15 @@ impl Graph {
     }
 
     fn add_edge(&mut self, from_idx: usize, to_idx: usize, dist: usize) {
+        let edge_idx = self.unique_edges.len();
         self.unique_edges.push(Edge {
             from_idx: from_idx.min(to_idx),
             to_idx: from_idx.max(to_idx),
             dist,
         });
 
-        self.nodes[from_idx]
-            .edge_idxs
-            .push(self.unique_edges.len() - 1);
-        self.nodes[to_idx]
-            .edge_idxs
-            .push(self.unique_edges.len() - 1);
+        self.nodes[from_idx].edge_idxs.push(edge_idx);
+        self.nodes[to_idx].edge_idxs.push(edge_idx);
     }
 
     #[allow(dead_code)]
@@ -103,12 +100,13 @@ impl Graph {
 
         println!();
 
-        for edge in &self.unique_edges {
+        for (idx, edge) in self.unique_edges.iter().enumerate() {
             println!(
-                "  {} -- {} [label=\"{}\"];",
+                "  {} -- {} [label=\"{} (i: {})\"];",
                 node_name(edge.from_idx),
                 node_name(edge.to_idx),
-                edge.dist
+                edge.dist,
+                idx
             );
         }
 
@@ -185,7 +183,7 @@ impl Map {
             return;
         }
 
-        let at_junction: bool = Map::look_around(&pos)
+        let at_junction = Map::look_around(&pos)
             .map(|p| ".O".contains(self.map[p.0][p.1]) as usize)
             .sum::<usize>()
             >= 3;
@@ -235,68 +233,58 @@ impl Map {
 
 fn find_longest(
     cur_node_idx: usize,
-    result: &mut usize,
-    visited_edges: &mut FixedBitSet,
-    enters: &mut usize,
-    cache: &mut HashSet<FixedBitSet>,
+    local_result: usize,
+    global_result: &mut usize,
+    visited_nodes: &mut FixedBitSet,
     graph: &Graph,
 ) {
     if cur_node_idx == graph.end_node_idx {
-        let cur_result = visited_edges
-            .ones()
-            .map(|p| graph.unique_edges[p].dist)
-            .sum::<usize>();
-        if *result < cur_result {
-            *result = cur_result;
-            println!("{cur_result}");
+        if *global_result < local_result {
+            *global_result = local_result;
+            println!("{local_result}: {visited_nodes}");
         }
         return;
     }
-
-    *enters += 1;
-    if cache.contains(visited_edges) {
-        if *enters % 1000000 == 0 {
-            println!("{visited_edges}");
-        }
+    if visited_nodes[cur_node_idx] {
         return;
     }
-    cache.insert(visited_edges.clone());
+    visited_nodes.toggle(cur_node_idx);
 
     for edge_idx in &graph.nodes[cur_node_idx].edge_idxs {
-        if visited_edges[*edge_idx] {
-            continue;
-        }
-        visited_edges.toggle(*edge_idx);
+        let edge: &Edge = &graph.unique_edges[*edge_idx];
+        let next_node_idx = edge.other(cur_node_idx);
         find_longest(
-            graph.unique_edges[*edge_idx].other(cur_node_idx),
-            result,
-            visited_edges,
-            enters,
-            cache,
+            next_node_idx,
+            local_result + edge.dist,
+            global_result,
+            visited_nodes,
             graph,
         );
-        visited_edges.toggle(*edge_idx);
     }
+
+    visited_nodes.toggle(cur_node_idx);
+    assert!(!visited_nodes[cur_node_idx]);
+}
+
+fn find_result(graph: &Graph) -> usize {
+    let mut result: usize = 0;
+    let mut visited_nodes = FixedBitSet::with_capacity(graph.nodes.len());
+    find_longest(
+        graph.start_node_idx,
+        0,
+        &mut result,
+        &mut visited_nodes,
+        graph,
+    );
+    result
 }
 
 fn run() {
     let mut map = Map::read();
     let graph = map.destructively_to_graph();
+    map.print();
     graph.print_graphviz();
-
-    // let mut result: usize = 0;
-    // let mut visited_edges = FixedBitSet::with_capacity(graph.unique_edges.len());
-    // let mut cache: HashSet<FixedBitSet> = HashSet::new();
-    // let mut enters: usize = 0;
-    // find_longest(
-    //     graph.start_node_idx,
-    //     &mut result,
-    //     &mut visited_edges,
-    //     &mut enters,
-    //     &mut cache,
-    //     &graph,
-    // );
-    // println!("Result: {result}");
+    println!("Result: {}", find_result(&graph));
 }
 
 fn main() {
