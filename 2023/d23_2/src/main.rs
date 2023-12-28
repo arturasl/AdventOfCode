@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use fixedbitset::FixedBitSet;
+use std::collections::{HashMap, HashSet};
 use std::io;
 use std::iter::Iterator;
 use std::thread;
@@ -12,6 +13,17 @@ struct Edge {
     dist: usize,
 }
 
+impl Edge {
+    fn other(&self, idx: usize) -> usize {
+        if self.from_idx == idx {
+            self.to_idx
+        } else {
+            assert!(self.to_idx == idx);
+            self.from_idx
+        }
+    }
+}
+
 #[derive(Debug)]
 struct Node {
     idx: usize,
@@ -23,6 +35,8 @@ struct Graph {
     nodes: Vec<Node>,
     pos_to_node_idx: HashMap<Pos, usize>,
     unique_edges: Vec<Edge>,
+    start_node_idx: usize,
+    end_node_idx: usize,
 }
 
 impl Graph {
@@ -31,6 +45,8 @@ impl Graph {
             nodes: Vec::new(),
             pos_to_node_idx: HashMap::new(),
             unique_edges: Vec::new(),
+            start_node_idx: 0,
+            end_node_idx: 0,
         }
     }
 
@@ -44,6 +60,7 @@ impl Graph {
             pos: *pos,
             edge_idxs: Vec::new(),
         });
+        self.pos_to_node_idx.insert(*pos, len);
         &mut self.nodes[len]
     }
 
@@ -70,16 +87,18 @@ impl Graph {
         println!("graph G{{");
         for node in &self.nodes {
             println!(
-                "{} [label=\"({}; {})\"];",
+                "  {} [label=\"({}; {})\"];",
                 node_name(node.idx),
                 node.pos.0,
                 node.pos.1
             );
         }
 
+        println!();
+
         for edge in &self.unique_edges {
             println!(
-                "{} -- {} [label=\"{}\"];",
+                "  {} -- {} [label=\"{}\"];",
                 node_name(edge.from_idx),
                 node_name(edge.to_idx),
                 edge.dist
@@ -193,6 +212,8 @@ impl Map {
         let mut graph: Graph = Graph::new();
         graph.upsert_node(&self.start_pos);
         self.walk(self.start_pos, 0, 0, &mut graph);
+        graph.start_node_idx = *graph.pos_to_node_idx.get(&self.start_pos).unwrap();
+        graph.end_node_idx = *graph.pos_to_node_idx.get(&self.end_pos).unwrap();
         graph
     }
 
@@ -205,10 +226,70 @@ impl Map {
     }
 }
 
+fn find_longest(
+    cur_node_idx: usize,
+    result: &mut usize,
+    visited_edges: &mut FixedBitSet,
+    enters: &mut usize,
+    cache: &mut HashSet<FixedBitSet>,
+    graph: &Graph,
+) {
+    if cur_node_idx == graph.end_node_idx {
+        let cur_result = visited_edges
+            .ones()
+            .map(|p| graph.unique_edges[p].dist)
+            .sum::<usize>();
+        if *result < cur_result {
+            *result = cur_result;
+            println!("{cur_result}");
+        }
+        return;
+    }
+
+    *enters += 1;
+    if cache.contains(visited_edges) {
+        if *enters % 1000000 == 0 {
+            println!("{visited_edges}");
+        }
+        return;
+    }
+    cache.insert(visited_edges.clone());
+
+    for edge_idx in &graph.nodes[cur_node_idx].edge_idxs {
+        if visited_edges[*edge_idx] {
+            continue;
+        }
+        visited_edges.toggle(*edge_idx);
+        find_longest(
+            graph.unique_edges[*edge_idx].other(cur_node_idx),
+            result,
+            visited_edges,
+            enters,
+            cache,
+            graph,
+        );
+        visited_edges.toggle(*edge_idx);
+    }
+}
+
 fn run() {
     let mut map = Map::read();
     let graph = map.destructively_to_graph();
     graph.print_graphviz();
+
+    let mut result: usize = 0;
+    let mut visited_edges = FixedBitSet::with_capacity(graph.unique_edges.len());
+    let mut cache: HashSet<FixedBitSet> = HashSet::new();
+    let mut enters: usize = 0;
+    find_longest(
+        graph.start_node_idx,
+        &mut result,
+        &mut visited_edges,
+        &mut enters,
+        &mut cache,
+        &graph,
+    );
+    println!("Result: {result}");
 }
 
 fn main() {
