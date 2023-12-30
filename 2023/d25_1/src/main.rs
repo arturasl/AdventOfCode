@@ -1,4 +1,6 @@
 use itertools::Itertools;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use std::collections::{BTreeMap, HashMap};
 use std::io;
 use std::iter::once;
@@ -100,7 +102,7 @@ fn do_walk(nodes: &mut Vec<Node>, taken_edges: &Vec<(usize, usize)>) {
 fn run() {
     let mut nodes: Vec<Node> = read_graph();
 
-    let unique_edges: Vec<(usize, usize)> = (0..nodes.len())
+    let mut unique_edges: Vec<(usize, usize)> = (0..nodes.len())
         .flat_map(|lhs_idx| {
             nodes[lhs_idx]
                 .children
@@ -109,6 +111,7 @@ fn run() {
                 .filter(|(lhs_idx, rhs_idx)| lhs_idx < rhs_idx)
         })
         .collect();
+    unique_edges.shuffle(&mut thread_rng());
 
     let mut found: Vec<(usize, usize)> = Vec::new();
 
