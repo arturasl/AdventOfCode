@@ -1,6 +1,7 @@
 use itertools::Itertools;
 use rstest::*;
 use std::io;
+use std::iter::once;
 use std::thread;
 
 fn perfect(steps: usize) -> usize {
@@ -18,47 +19,28 @@ fn full(steps: usize) -> usize {
 fn expand(map: Vec<Vec<char>>, default: char) -> Vec<Vec<char>> {
     let cols: usize = map[0].len();
 
-    vec![vec![default; cols + 2]]
-        .into_iter()
+    once(vec![default; cols + 2])
         .chain(map.into_iter().map(|r| {
-            vec![default]
-                .into_iter()
+            once(default)
                 .chain(r)
-                .chain(vec![default])
+                .chain(once(default))
                 .collect::<Vec<char>>()
         }))
-        .chain(vec![vec![default; cols + 2]])
-        .collect::<Vec<Vec<char>>>()
+        .chain(once(vec![default; cols + 2]))
+        .collect()
 }
 
-fn rot(map: &Vec<Vec<char>>, mut pos: (usize, usize)) -> (usize, usize) {
+fn rot(map: &Vec<Vec<char>>, pos: (usize, usize)) -> (usize, usize) {
     assert!(pos.0 != 0 && pos.0 != map.len() - 1);
     assert!(pos.1 != 0 && pos.1 != map[pos.0].len() - 1);
-
-    if pos.0 == 0 {
-        pos.0 = map.len() - 2;
-    } else if pos.0 == map.len() - 1 {
-        pos.0 = 1;
-    }
-    if pos.1 == 0 {
-        pos.1 = map[pos.0].len() - 2;
-    } else if pos.1 == map[pos.0].len() - 1 {
-        pos.1 = 1;
-    }
     pos
 }
 
 fn find_s(map: &Vec<Vec<char>>) -> (usize, usize) {
-    let mut s_pos: Option<(usize, usize)> = None;
-    for row in 0..map.len() {
-        for col in 0..map[row].len() {
-            if map[row][col] == 'S' {
-                assert!(s_pos.is_none());
-                s_pos = Some((row, col));
-            }
-        }
-    }
-    s_pos.unwrap()
+    (0..map.len())
+        .cartesian_product(0..map[0].len())
+        .find(|(i, j)| map[*i][*j] == 'S')
+        .unwrap()
 }
 
 fn repeat(mut map: Vec<Vec<char>>, copies: usize) -> Vec<Vec<char>> {
@@ -70,10 +52,9 @@ fn repeat(mut map: Vec<Vec<char>>, copies: usize) -> Vec<Vec<char>> {
     map[s_pos.0][s_pos.1] = '.';
 
     for _ in 0..copies {
-        for j in 0..orig_cols {
-            for i in 0..map.len() {
-                let ch = map[i][j];
-                map[i].push(ch);
+        for row in map.iter_mut() {
+            for j in 0..orig_cols {
+                row.push(row[j]);
             }
         }
     }
