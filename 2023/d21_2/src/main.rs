@@ -1,9 +1,8 @@
 use itertools::Itertools;
 use rstest::*;
 use std::collections::VecDeque;
-use std::io;
 use std::iter::once;
-use std::thread;
+use std::{io, thread};
 
 fn perfect(steps: usize) -> usize {
     (steps + 1).pow(2)
@@ -225,7 +224,7 @@ fn test_quadratic(#[case] steps: usize, #[case] ans: usize) {
     assert_eq!(solution.solve(), ans);
 }
 
-fn run() {
+fn main() {
     let map: Vec<Vec<char>> = str_to_map(
         &io::stdin()
             .lines()
@@ -241,13 +240,4 @@ fn run() {
     let mut quadratic = Quadratic::new(&map, 32);
     println!("{}", quadratic.solve());
     quadratic.print();
-}
-
-fn main() {
-    thread::Builder::new()
-        .stack_size(20 * 1024 * 1024)
-        .spawn(run)
-        .unwrap()
-        .join()
-        .unwrap();
 }
