@@ -1,8 +1,12 @@
+#![allow(dead_code)]
+
 use itertools::Itertools;
 use rstest::*;
 use std::collections::VecDeque;
 use std::iter::once;
-use std::{io, thread};
+
+const NEEDED_STEPS: usize = 26_501_365;
+const WIDTH: usize = 65;
 
 fn perfect(steps: usize) -> usize {
     (steps + 1).pow(2)
@@ -164,6 +168,7 @@ struct Quadratic {
     visited: Vec<Vec<bool>>,
     map: Vec<Vec<char>>,
     steps: usize,
+    visited_counts: [usize; 2],
 }
 
 impl Quadratic {
@@ -173,34 +178,37 @@ impl Quadratic {
             visited: vec![vec![false; expanded_map[0].len()]; expanded_map.len()],
             map: expanded_map,
             steps,
+            visited_counts: [0, 0],
         }
     }
 
     fn solve(&mut self) -> usize {
         let mut queue: VecDeque<((usize, usize), usize)> = VecDeque::new();
         queue.push_front((find_s(&self.map), 0));
-        let mut counts = [0, 0];
         while let Some((cur_pos, cur_steps)) = queue.pop_back() {
             if cur_steps == self.steps + 1
-                || self.map[cur_pos.0][cur_pos.1] == '#'
                 || self.visited[cur_pos.0][cur_pos.1]
+                || self.map[cur_pos.0][cur_pos.1] == '#'
             {
                 continue;
             }
             self.visited[cur_pos.0][cur_pos.1] = true;
-            counts[cur_steps % 2] += 1;
+
+            self.visited_counts[cur_steps % 2] += 1;
 
             for next_pos in look_around(&cur_pos) {
                 queue.push_front((next_pos, cur_steps + 1));
             }
         }
-        counts[self.steps % 2]
+        self.visited_counts[self.steps % 2]
     }
 
     fn print(&self) {
         for i in 0..self.map.len() {
             for j in 0..self.map[i].len() {
-                if self.visited[i][j] {
+                if self.map[i][j] == '#' {
+                    print!("#");
+                } else if self.visited[i][j] {
                     print!("O");
                 } else {
                     print!("{}", self.map[i][j]);
@@ -224,20 +232,41 @@ fn test_quadratic(#[case] steps: usize, #[case] ans: usize) {
     assert_eq!(solution.solve(), ans);
 }
 
+#[rstest]
+#[trace]
+fn test_quadratic_same_as_qubic(#[values(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)] steps: usize) {
+    let mut quadratic = Quadratic::new(&str_to_map(include_str!("small.in")), steps);
+    let mut qubic = Qubic::new(&str_to_map(include_str!("small.in")), steps);
+    assert_eq!(quadratic.solve(), qubic.solve());
+}
+
+fn calc_for_large(steps: usize, reps: usize) -> usize {
+    assert_eq!(steps, WIDTH + (WIDTH * 2 + 1) * reps);
+
+    let middle = [593, 655];
+    let side = [626, 618];
+
+    let num_sides = 2 * reps * (reps + 1);
+    let num_middle = 2 * reps * reps + 2 * reps + 1;
+
+    perfect(steps)
+        - (reps * reps) * middle[0]
+        - (num_middle - (reps * reps)) * middle[1]
+        - (num_sides / 2) * side[1]
+        - (num_sides / 2) * side[0]
+}
+
+#[rstest]
+#[trace]
+fn test_calc_for_large(#[values(0, 1, 2, 3, 4, 5, 6)] reps: usize) {
+    let steps = WIDTH + (WIDTH * 2 + 1) * reps;
+    let mut quadratic = Quadratic::new(&str_to_map(include_str!("large.in")), steps);
+    assert_eq!(quadratic.solve(), calc_for_large(steps, reps));
+}
+
 fn main() {
-    let map: Vec<Vec<char>> = str_to_map(
-        &io::stdin()
-            .lines()
-            .map(|x| x.unwrap().trim().to_string())
-            .intersperse("\n".to_string())
-            .collect::<String>(),
-    );
-
-    let mut qubic = Qubic::new(&map, 32);
-    println!("{}", qubic.solve());
-    qubic.print();
-
-    let mut quadratic = Quadratic::new(&map, 32);
-    println!("{}", quadratic.solve());
-    quadratic.print();
+    let mut reps = NEEDED_STEPS - WIDTH;
+    assert!(reps % (WIDTH * 2 + 1) == 0);
+    reps /= WIDTH * 2 + 1;
+    println!("{}", calc_for_large(NEEDED_STEPS, reps))
 }
