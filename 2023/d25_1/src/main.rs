@@ -2,10 +2,9 @@ use itertools::Itertools;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use rayon::prelude::*;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::io;
 use std::iter::once;
-use std::thread;
 
 #[derive(Debug)]
 struct Node {
@@ -20,7 +19,7 @@ struct State {
 }
 
 fn read_graph() -> Vec<Node> {
-    let map: BTreeMap<String, Vec<String>> = io::stdin()
+    let map: HashMap<String, Vec<String>> = io::stdin()
         .lines()
         .map(|x| x.unwrap().trim().to_string())
         .filter(|line| !line.is_empty())
@@ -129,7 +128,7 @@ fn do_walk(
     (None, visited)
 }
 
-fn run() {
+fn main() {
     let nodes: Vec<Node> = read_graph();
 
     let mut unique_edges: Vec<(usize, usize)> = (0..nodes.len())
@@ -146,16 +145,13 @@ fn run() {
     let taken_edges: Vec<(usize, usize)> = unique_edges
         .iter()
         .combinations(2)
+        .par_bridge()
         .map(|t| {
             t.into_iter()
                 .map(|(l, r)| vec![(*l, *r), (*r, *l)])
                 .concat()
         })
-        .collect::<Vec<Vec<(usize, usize)>>>()
-        .par_iter()
-        .map(|taken_edges| do_walk(&nodes, taken_edges).0)
-        .find_any(|f| f.is_some())
-        .map(|f| f.unwrap())
+        .find_map_any(|taken_edges| do_walk(&nodes, &taken_edges).0)
         .unwrap();
 
     println!("Edges: {taken_edges:?}");
@@ -168,13 +164,4 @@ fn run() {
     )
     .1;
     println!("Result: {}", num_visited * (nodes.len() - num_visited));
-}
-
-fn main() {
-    thread::Builder::new()
-        .stack_size(20 * 1024 * 1024)
-        .spawn(run)
-        .unwrap()
-        .join()
-        .unwrap();
 }
