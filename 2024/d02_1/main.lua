@@ -1,0 +1,26 @@
+local num_safe = 0
+
+for line in io.lines() do
+	line = line:gsub("^%s+", ""):gsub("%s+$", "")
+	if line ~= "" then
+		local lst = {}
+		for str_num in line:gmatch("(%d+)") do
+			lst[#lst + 1] = tonumber(str_num)
+		end
+
+		local is_safe = true
+		local sign = 0
+		for i = 2, #lst do
+			local diff = lst[i] - lst[i - 1]
+			local abs_diff = math.abs(diff)
+			local local_sign = diff < 0 and -1 or 1
+			is_safe = is_safe and abs_diff >= 1 and abs_diff <= 3
+			is_safe = is_safe and (sign == 0 or sign == local_sign)
+			sign = local_sign
+		end
+
+		num_safe = num_safe + (is_safe and 1 or 0)
+	end
+end
+
+print(num_safe)
