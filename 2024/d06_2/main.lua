@@ -26,10 +26,7 @@ local function find_path(map, cur_y, cur_x)
 		elseif map[next_y][next_x] ~= "#" then
 			cur_y, cur_x = next_y, next_x
 		else
-			cur_dir = cur_dir + 1
-			if cur_dir == #dirs + 1 then
-				cur_dir = 1
-			end
+			cur_dir = (cur_dir % #dirs) + 1
 		end
 	end
 end
