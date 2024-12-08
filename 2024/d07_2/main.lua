@@ -13,9 +13,20 @@ for line in io.lines() do
 		local dp = { [1] = { [nums[1]] = 1 } }
 
 		for i = 2, #nums do
+			local concat_of_rest = ""
+			for j = i + 1, #nums do
+				concat_of_rest = concat_of_rest .. tostring(nums[j])
+			end
+
 			dp[i] = {}
 			for prev, cnt in pairs(dp[i - 1]) do
 				local function update(val)
+					if val > expected then
+						return
+					end
+					if tonumber(tostring(val) .. concat_of_rest) < expected then
+						return
+					end
 					dp[i][val] = (dp[i][val] or 0) + cnt
 				end
 
