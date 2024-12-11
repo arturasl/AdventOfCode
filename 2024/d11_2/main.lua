@@ -1,5 +1,4 @@
-local steps = nil
-local function internal_steps(num, steps_left)
+local function steps(num, steps_left)
 	if steps_left == 0 then
 		return 1
 	end
@@ -16,7 +15,7 @@ local function internal_steps(num, steps_left)
 
 	return steps(num * 2024, steps_left - 1)
 end
-steps = require("multikey.memoize")(internal_steps)
+steps = require("multikey.memoize")(steps)
 
 local function main()
 	local nums = {}
