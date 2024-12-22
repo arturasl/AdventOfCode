@@ -106,13 +106,18 @@ local function solve(test)
 		return lhs.cost < rhs.cost
 	end)
 
+	local robots = 2 + 1
+	local init_keys = {}
+	for _ = 1, robots do
+		table.insert(init_keys, "A")
+	end
 	queue:insert({
 		cost = 0,
-		cur_keys = { "A", "A", "A" },
+		cur_keys = init_keys,
 		print_char_idx = 1,
 	})
 	local visited = mk:new()
-	visited:put(join_arr({ "A", "A", "A" }, ""), 1, true)
+	visited:put(join_arr(init_keys, ""), 1, true)
 
 	while true do
 		local cur_state = queue:pop()
@@ -128,7 +133,7 @@ local function solve(test)
 			next_state.print_char_idx = cur_state.print_char_idx
 			next_state.cost = cur_state.cost + 1
 
-			local exec_result = execute(3, next_state.cur_keys, key)
+			local exec_result = execute(robots, next_state.cur_keys, key)
 			if exec_result ~= nil then
 				if exec_result == test[next_state.print_char_idx] then
 					next_state.print_char_idx = next_state.print_char_idx + 1
