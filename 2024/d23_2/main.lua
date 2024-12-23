@@ -34,32 +34,41 @@ local function main()
 	local best_cnt = 0
 	local best_node_arr = {}
 
-	for _, set_to in pairs(graph) do
+	local tried_to_grow_around = {}
+
+	for from, set_to in pairs(graph) do
 		local arr_to = {}
 		for to, _ in pairs(set_to) do
-			arr_to[#arr_to + 1] = to
-		end
-
-		for i = 1, (1 << #arr_to) - 1 do
-			local arr_subset = {}
-
-			for j = 0, #arr_to do
-				if (i & (1 << j)) ~= 0 then
-					arr_subset[#arr_subset + 1] = arr_to[j + 1]
-				end
+			if tried_to_grow_around[to] == nil then
+				arr_to[#arr_to + 1] = to
 			end
+		end
+		tried_to_grow_around[from] = true
 
-			if best_cnt < #arr_subset then
-				local ok = true
-				for lhs_idx = 1, #arr_subset do
-					for rhs_idx = lhs_idx + 1, #arr_subset do
-						ok = ok and graph[arr_subset[lhs_idx]][arr_subset[rhs_idx]] ~= nil
+		if best_cnt < #arr_to then
+			for i = 1, (1 << #arr_to) - 1 do
+				local arr_subset = {}
+				local contains_self = false
+
+				for j = 0, #arr_to do
+					if (i & (1 << j)) ~= 0 then
+						arr_subset[#arr_subset + 1] = arr_to[j + 1]
+						contains_self = contains_self or arr_to[j + 1] == from
 					end
 				end
 
-				if ok then
-					best_cnt = #arr_subset
-					best_node_arr = arr_subset
+				if contains_self and best_cnt < #arr_subset then
+					local ok = true
+					for lhs_idx = 1, #arr_subset do
+						for rhs_idx = lhs_idx + 1, #arr_subset do
+							ok = ok and graph[arr_subset[lhs_idx]][arr_subset[rhs_idx]] ~= nil
+						end
+					end
+
+					if ok then
+						best_cnt = #arr_subset
+						best_node_arr = arr_subset
+					end
 				end
 			end
 		end
