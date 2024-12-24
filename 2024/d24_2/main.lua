@@ -101,13 +101,6 @@ local function get_num_bits(graph, ch)
     return num_bits
 end
 
-local function print_graph(graph, non_input_gates)
-    for _, node_name in ipairs(non_input_gates) do
-        local node = graph[node_name]
-        print(("%s %s %s -> %s"):format(node.lhs, node.op, node.rhs, node_name))
-    end
-end
-
 local function gen_random_bits(num_bits)
     local bits = {}
     for i = 1, num_bits do
