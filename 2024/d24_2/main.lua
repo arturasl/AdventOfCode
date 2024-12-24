@@ -1,5 +1,3 @@
-local inspect = require("inspect")
-
 local function read()
     local graph = {}
     for line in io.lines() do
@@ -51,11 +49,11 @@ local function eval_internal(graph, cache, node_name)
 
     local result = 0
     if node.op == "XOR" then
-        result = lhs ~ rhs
+        result = lhs ~= rhs and 1 or 0
     elseif node.op == "OR" then
-        result = lhs | rhs
+        result = (lhs == 1 or rhs == 1) and 1 or 0
     elseif node.op == "AND" then
-        result = lhs & rhs
+        result = (lhs == 1 and rhs == 1) and 1 or 0
     else
         assert(false)
     end
@@ -198,7 +196,7 @@ local function main()
         ["small"] = {
             bad_wires = 4,
             fn_to_optimize = function(a, b)
-                return a & b
+                return bit32.band(a, b)
             end,
             str_op = "&",
             arg_less_bits = 0,
@@ -220,7 +218,6 @@ local function main()
     print(("z bits: %s"):format(num_z_bits))
 
     local non_input_gates = find_non_inpute_gates(graph)
-    print(("Non input gates: %s"):format(inspect(non_input_gates)))
 
     local canaries = {}
     for _ = 1, 10 do
@@ -264,10 +261,9 @@ local function main()
         apply_swaps(graph, local_swaps)
 
         local local_off_by = evaluate_canaries(graph, canaries, num_z_bits, prob.arg_less_bits)
-        if its % 1000 == 0 then
+        if its % 10000 == 0 then
             print(
-                ("best swaps: %s, best score: %d, result: %s, local_best_score: %d, local score: %d"):format(
-                    inspect(best_swaps),
+                ("best score: %d, result: %s, local_best_score: %d, local score: %d"):format(
                     best_score,
                     swaps_to_result(best_swaps),
                     local_best_score,
