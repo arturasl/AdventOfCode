@@ -78,13 +78,11 @@ local function eval(graph, num_bits)
     local result = ""
     for z = num_bits - 1, 0, -1 do
         local node = ("z%02d"):format(z)
-        if graph[node] ~= nil then
-            local bit = tostring(eval_internal(graph, cache, node))
-            if bit == "" then
-                return nil
-            end
-            result = result .. bit
+        local bit = tostring(eval_internal(graph, cache, node))
+        if bit == "" then
+            return nil
         end
+        result = result .. bit
     end
     return tonumber(result, 2)
 end
