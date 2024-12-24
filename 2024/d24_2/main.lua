@@ -117,11 +117,13 @@ local function gen_random_bits(num_bits)
 end
 
 local function bits_to_int(bits)
-    local str = ""
+    local pow = 1
+    local result = 0
     for _, bit in ipairs(bits) do
-        str = tostring(bit) .. str
+        result = result + bit * pow
+        pow = pow * 2
     end
-    return tonumber(str, 2)
+    return result
 end
 
 local function mutate_swaps(swaps, non_input_gates)
