@@ -127,21 +127,26 @@ local function bits_to_int(bits)
 end
 
 local function mutate_swaps(swaps, non_input_gates)
-    local local_swaps = {}
+    local result = {}
     local had = {}
     for i = 1, #swaps do
         if math.random(0, 1) == 1 then
-            local_swaps[i] = swaps[i]
-        else
-            local_swaps[i] = non_input_gates[math.random(1, #non_input_gates)]
+            result[i] = swaps[i]
+            had[swaps[i]] = true
         end
-
-        if had[local_swaps[i]] ~= nil then
-            return nil
-        end
-        had[local_swaps[i]] = true
     end
-    return local_swaps
+
+    for i = 1, #swaps do
+        while result[i] == nil do
+            result[i] = non_input_gates[math.random(1, #non_input_gates)]
+            if had[result[i]] ~= nil then
+                result[i] = nil
+            end
+        end
+        had[result[i]] = true
+    end
+
+    return result
 end
 
 local function evaluate_canaries(graph, canaries, num_z_bits, arg_less_bits)
@@ -161,20 +166,8 @@ local function evaluate_canaries(graph, canaries, num_z_bits, arg_less_bits)
 end
 
 local function apply_swaps(graph, swaps)
-    local diff = {}
-    local all_diff = true
-    for _, s in ipairs(swaps) do
-        if diff[s] == nil then
-            diff[s] = true
-        else
-            all_diff = false
-        end
-    end
-
-    if all_diff then
-        for i = 1, #swaps, 2 do
-            graph[swaps[i]], graph[swaps[i + 1]] = graph[swaps[i + 1]], graph[swaps[i]]
-        end
+    for i = 1, #swaps, 2 do
+        graph[swaps[i]], graph[swaps[i + 1]] = graph[swaps[i + 1]], graph[swaps[i]]
     end
 end
 
@@ -266,40 +259,38 @@ local function main()
         its = its + 1
 
         local local_swaps = mutate_swaps(swaps, non_input_gates)
-        if local_swaps ~= nil then
-            apply_swaps(graph, local_swaps)
+        apply_swaps(graph, local_swaps)
 
-            local local_off_by = evaluate_canaries(graph, canaries, num_z_bits, prob.arg_less_bits)
-            if its % 1000 == 0 then
-                print(
-                    ("best swaps: %s, best score: %d, result: %s, local_best_score: %d, local score: %d"):format(
-                        inspect(best_swaps),
-                        best_score or -1,
-                        swaps_to_result(best_swaps),
-                        local_best_score or -1,
-                        local_off_by or -1
-                    )
+        local local_off_by = evaluate_canaries(graph, canaries, num_z_bits, prob.arg_less_bits)
+        if its % 1000 == 0 then
+            print(
+                ("best swaps: %s, best score: %d, result: %s, local_best_score: %d, local score: %d"):format(
+                    inspect(best_swaps),
+                    best_score or -1,
+                    swaps_to_result(best_swaps),
+                    local_best_score or -1,
+                    local_off_by or -1
                 )
+            )
+        end
+
+        apply_swaps(graph, local_swaps)
+
+        if local_off_by ~= nil then
+            if local_best_score == nil or local_off_by < local_best_score * 3 then
+                swaps = local_swaps
+                local_best_score = local_off_by
             end
 
-            apply_swaps(graph, local_swaps)
+            if best_score == nil or local_off_by < best_score then
+                swaps = local_swaps
+                best_swaps = local_swaps
+                best_score = local_off_by
+            end
 
-            if local_off_by ~= nil then
-                if local_best_score == nil or local_off_by < local_best_score * 3 then
-                    swaps = local_swaps
-                    local_best_score = local_off_by
-                end
-
-                if best_score == nil or local_off_by < best_score then
-                    swaps = local_swaps
-                    best_swaps = local_swaps
-                    best_score = local_off_by
-                end
-
-                if math.random(1, 100000) == 1 then
-                    swaps = best_swaps
-                    local_best_score = best_score
-                end
+            if math.random(1, 100000) == 1 then
+                swaps = best_swaps
+                local_best_score = best_score
             end
         end
     end
