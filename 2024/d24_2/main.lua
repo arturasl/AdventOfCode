@@ -261,21 +261,26 @@ local function main()
 
     local local_best_score = nil
 
+    local its = 0
     while best_score ~= 0 do
+        its = its + 1
+
         local local_swaps = mutate_swaps(swaps, non_input_gates)
         if local_swaps ~= nil then
             apply_swaps(graph, local_swaps)
 
             local local_off_by = evaluate_canaries(graph, canaries, num_z_bits, prob.arg_less_bits)
-            print(
-                ("best swaps: %s, best score: %d, result: %s, local_best_score: %d, local score: %d"):format(
-                    inspect(best_swaps),
-                    best_score or -1,
-                    swaps_to_result(best_swaps),
-                    local_best_score or -1,
-                    local_off_by or -1
+            if its % 1000 == 0 then
+                print(
+                    ("best swaps: %s, best score: %d, result: %s, local_best_score: %d, local score: %d"):format(
+                        inspect(best_swaps),
+                        best_score or -1,
+                        swaps_to_result(best_swaps),
+                        local_best_score or -1,
+                        local_off_by or -1
+                    )
                 )
-            )
+            end
 
             apply_swaps(graph, local_swaps)
 
