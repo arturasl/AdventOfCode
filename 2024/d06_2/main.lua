@@ -16,7 +16,6 @@ local function find_path(map, cur_y, cur_x)
             return true, visited_poses
         end
         visited[state] = true
-        map[cur_y][cur_x] = "x"
 
         local next_y = cur_y + dirs[cur_dir].dy
         local next_x = cur_x + dirs[cur_dir].dx
