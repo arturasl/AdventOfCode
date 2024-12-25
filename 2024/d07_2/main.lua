@@ -10,33 +10,33 @@ for line in io.lines() do
             nums[#nums + 1] = tonumber(str_num)
         end
 
-        local dp = { [1] = { [nums[1]] = 1 } }
+        local dp = { [#nums + 1] = { [expected] = 1 } }
 
-        for i = 2, #nums do
-            local concat_of_rest = ""
-            for j = i + 1, #nums do
-                concat_of_rest = concat_of_rest .. tostring(nums[j])
-            end
-
+        for i = #nums, 1, -1 do
             dp[i] = {}
-            for prev, cnt in pairs(dp[i - 1]) do
+            local str_num = tostring(nums[i])
+            for next, cnt in pairs(dp[i + 1]) do
                 local function update(val)
-                    if val > expected then
-                        return
-                    end
-                    if tonumber(tostring(val) .. concat_of_rest) < expected then
-                        return
-                    end
                     dp[i][val] = (dp[i][val] or 0) + cnt
                 end
 
-                update(prev + nums[i])
-                update(prev * nums[i])
-                update(tonumber(string.format("%d%d", prev, nums[i])))
+                if next - nums[i] >= 0 then
+                    update(next - nums[i])
+                end
+
+                if next % nums[i] == 0 then
+                    update(next / nums[i])
+                end
+
+                local str_next = tostring(next)
+                if #str_next >= #str_num and str_next:sub(-#str_num) == str_num then
+                    local left = str_next:sub(1, -(#str_num + 1))
+                    update(left == "" and 0 or tonumber(left))
+                end
             end
         end
 
-        result = result + (dp[#nums][expected] ~= nil and expected or 0)
+        result = result + (dp[1][0] ~= nil and expected or 0)
     end
 end
 
