@@ -18,14 +18,12 @@ local function main()
     local width, height = 101, 103
     local robots = read()
 
-    local around = {}
-    for dy = -1, 1 do
-        for dx = -1, 1 do
-            if dy ~= 0 and dx ~= 0 then
-                around[#around + 1] = { y = dy, x = dx }
-            end
-        end
-    end
+    local around = {
+        { y = 0, x = 1 },
+        { y = -1, x = 0 },
+        { y = -1, x = 1 },
+        { y = -1, x = -1 },
+    }
 
     local next_robots = {}
 
@@ -62,10 +60,9 @@ local function main()
             have_around = have_around + (cnt > 0 and 1 or 0)
         end
 
-        local frac = have_around * 100. / #robots
-        if best_score < frac then
-            best_score = frac
-            print("############### ", time, " (", frac, "%) ###############")
+        if best_score < have_around then
+            best_score = have_around
+            print("############### ", time, " (around: ", have_around, ") ###############")
             for y = 1, height do
                 for x = 1, width do
                     if map[y][x] then
