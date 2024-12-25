@@ -1,18 +1,21 @@
+local dirs = {
+    { dy = -1, dx = 0 },
+    { dy = 0, dx = 1 },
+    { dy = 1, dx = 0 },
+    { dy = 0, dx = -1 },
+}
+
 local function find_path(map, cur_y, cur_x, cur_dir, should_calc_visited)
-    local dirs = {
-        { dy = -1, dx = 0 },
-        { dy = 0, dx = 1 },
-        { dy = 1, dx = 0 },
-        { dy = 0, dx = -1 },
-    }
     local visited_poses = {}
     local visited = {}
+
+    local width = #map[1]
 
     while true do
         if should_calc_visited then
             visited_poses[#visited_poses + 1] = { y = cur_y, x = cur_x, dir = cur_dir }
         end
-        local state = string.format("%d %d %d", cur_y, cur_x, cur_dir)
+        local state = (cur_y * width * 10 * 100) + (cur_x * 10) + cur_dir
         if visited[state] ~= nil then
             return true, visited_poses
         end
