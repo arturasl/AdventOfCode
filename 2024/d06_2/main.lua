@@ -11,7 +11,7 @@ local function find_path(map, cur_y, cur_x)
 
     while true do
         visited_poses[string.format("%d %d", cur_y, cur_x)] = true
-        local state = string.format("%d %d %d %d", cur_y, cur_x, dirs[cur_dir].dy, dirs[cur_dir].dx)
+        local state = string.format("%d %d %d", cur_y, cur_x, cur_dir)
         if visited[state] ~= nil then
             return true, visited_poses
         end
