@@ -49,7 +49,7 @@ local function main()
         end
 
         local have_around = 0
-        for _, robot in ipairs(next_robots) do
+        for i, robot in ipairs(next_robots) do
             local cnt = 0
             for _, d in ipairs(around) do
                 local ny, nx = robot.y + d.y + 1, robot.x + d.x + 1
@@ -58,6 +58,9 @@ local function main()
                 end
             end
             have_around = have_around + (cnt > 0 and 1 or 0)
+            if have_around + (#next_robots - i) < best_score then
+                break
+            end
         end
 
         if best_score < have_around then
