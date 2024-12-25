@@ -1,24 +1,4 @@
-local inspect = require("inspect")
 local mk = require("multikey")
-
-local function print_data(data)
-    io.write("############# ", data.step, " #############\n")
-    for y = 1, #data.map do
-        for x = 1, #data.map[y] do
-            if data.robot.y == y and data.robot.x == x then
-                if 1 <= data.step and data.step <= #data.moves then
-                    io.write(data.moves[data.step])
-                else
-                    io.write("@")
-                end
-            else
-                io.write(data.map[y][x])
-            end
-        end
-        io.write("\n")
-    end
-    io.write("\n")
-end
 
 local function read()
     local data = { map = {}, robot = { y = nil, x = nil }, moves = {}, step = 0 }
@@ -103,7 +83,6 @@ local function main()
 
     while true do
         data.step = data.step + 1
-        print_data(data)
         if data.step == #data.moves + 1 then
             break
         end
