@@ -94,7 +94,7 @@ end
 
 local best_a = nil
 local best_correct_up_to = 0
-local orig = nil
+local orig = { program = {} }
 
 local function find(start, A)
     if best_a ~= nil and A >= best_a then
