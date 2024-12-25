@@ -1,5 +1,4 @@
 local mk = require("multikey")
-local inspect = require("inspect")
 
 local function read()
     local robots = {}
@@ -21,6 +20,7 @@ local function main()
     local width, height = 101, 103
     local robots = read()
 
+    local best_score = 0
     for time = 0, 10000 do
         local taken = mk.new()
         for _, robot in ipairs(robots) do
@@ -41,7 +41,8 @@ local function main()
         end
 
         local frac = have_around * 100. / #robots
-        if have_around * 100. / #robots > 40 then
+        if best_score < frac then
+            best_score = frac
             print("############### ", time, " (", frac, "%) ###############")
             for y = 0, height - 1 do
                 for x = 0, width - 1 do
@@ -53,6 +54,7 @@ local function main()
                 end
                 io.write("\n")
             end
+            print(time)
         end
     end
 end
