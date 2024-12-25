@@ -1,50 +1,50 @@
-d01_1, elapsed_sec: 0.00s, result: 1110981
-d01_2, elapsed_sec: 0.00s, result: 24869388
-d02_1, elapsed_sec: 0.00s, result: 332
-d02_2, elapsed_sec: 0.00s, result: 398
-d03_1, elapsed_sec: 0.00s, result: 185797128
-d03_2, elapsed_sec: 0.00s, result: 89798695
-d04_1, elapsed_sec: 0.00s, result: 2551
-d04_2, elapsed_sec: 0.01s, result: 1985
-d05_1, elapsed_sec: 0.01s, result: 6370
-d05_2, elapsed_sec: 0.00s, result: 4637
-d06_1, elapsed_sec: 0.00s, result: 5331
-d06_2, elapsed_sec: 9.51s, result: 1812
-d07_1, elapsed_sec: 0.08s, result: 42283209483350
-d07_2, elapsed_sec: 0.02s, result: 1026766857276279
-d08_1, elapsed_sec: 0.01s, result: 220
-d08_2, elapsed_sec: 0.00s, result: 813
-d09_1, elapsed_sec: 0.01s, result: 6323641412437
-d09_2, elapsed_sec: 0.06s, result: 6351801932670
-d10_1, elapsed_sec: 0.00s, result: 496
-d10_2, elapsed_sec: 0.00s, result: 1120
-d11_1, elapsed_sec: 0.00s, result: 212655
-d11_2, elapsed_sec: 0.16s, result: 253582809724830
-d12_1, elapsed_sec: 0.01s, result: 1483212
-d12_2, elapsed_sec: 0.03s, result: 897062
-d13_1, elapsed_sec: 0.16s, result: 32041
-d13_2, elapsed_sec: 0.00s, result: 95843948914827
-d14_1, elapsed_sec: 0.00s, result: 214400550
-d14_2, elapsed_sec: 2.08s, result: 8149
-d15_1, elapsed_sec: 0.00s, result: 1441031
-d15_2, elapsed_sec: 4.66s, result: 1425169
-d16_1, elapsed_sec: 0.16s, result: 122492
-d16_2, elapsed_sec: 0.34s, result: 520
-d17_1, elapsed_sec: 0.00s, result: 2,4,1,3,7,5,0,3,4,3,1,5,5,5,3,0
-d17_2, elapsed_sec: 55.21s, result: 236580836040301
-d18_1, elapsed_sec: 0.01s, result: 322
-d18_2, elapsed_sec: 0.03s, result: 60,21
-d19_1, elapsed_sec: 0.17s, result: 336
-d19_2, elapsed_sec: 0.67s, result: 758890600222015
-d20_1, elapsed_sec: 0.07s, result: 1502
-d20_2, elapsed_sec: 0.55s, result: 1028136
-d21_1, elapsed_sec: 0.03s, result: 154208
-d21_2, elapsed_sec: 0.01s, result: 188000493837892
-d22_1, elapsed_sec: 0.09s, result: 14622549304
-d22_2, elapsed_sec: 0.59s, result: 1735
-d23_1, elapsed_sec: 0.01s, result: 1352
-d23_2, elapsed_sec: 0.35s, result: dm,do,fr,gf,gh,gy,iq,jb,kt,on,rg,xf,ze
-d24_1, elapsed_sec: 0.00s, result: 56729630917616
-d24_2, elapsed_sec: 390.20s, result: bjm,hsw,nvr,skf,wkr,z07,z13,z18
-d25_1, elapsed_sec: 0.00s, result: 3320
-Above 1s: 5
+lua d01_1, elapsed_sec: 0.00s, result: 1110981
+lua d01_2, elapsed_sec: 0.00s, result: 24869388
+lua d02_1, elapsed_sec: 0.00s, result: 332
+lua d02_2, elapsed_sec: 0.00s, result: 398
+lua d03_1, elapsed_sec: 0.00s, result: 185797128
+lua d03_2, elapsed_sec: 0.00s, result: 89798695
+lua d04_1, elapsed_sec: 0.00s, result: 2551
+lua d04_2, elapsed_sec: 0.01s, result: 1985
+lua d05_1, elapsed_sec: 0.01s, result: 6370
+lua d05_2, elapsed_sec: 0.00s, result: 4637
+lua d06_1, elapsed_sec: 0.00s, result: 5331
+lua d06_2, elapsed_sec: 9.52s, result: 1812
+lua d07_1, elapsed_sec: 0.07s, result: 42283209483350
+lua d07_2, elapsed_sec: 0.02s, result: 1026766857276279
+lua d08_1, elapsed_sec: 0.01s, result: 220
+lua d08_2, elapsed_sec: 0.00s, result: 813
+lua d09_1, elapsed_sec: 0.00s, result: 6323641412437
+lua d09_2, elapsed_sec: 0.06s, result: 6351801932670
+lua d10_1, elapsed_sec: 0.00s, result: 496
+lua d10_2, elapsed_sec: 0.00s, result: 1120
+lua d11_1, elapsed_sec: 0.00s, result: 212655
+lua d11_2, elapsed_sec: 0.16s, result: 253582809724830
+lua d12_1, elapsed_sec: 0.01s, result: 1483212
+lua d12_2, elapsed_sec: 0.03s, result: 897062
+lua d13_1, elapsed_sec: 0.16s, result: 32041
+lua d13_2, elapsed_sec: 0.00s, result: 95843948914827
+lua d14_1, elapsed_sec: 0.00s, result: 214400550
+luajit d14_2, elapsed_sec: 0.41s, result: 8149
+lua d15_1, elapsed_sec: 0.00s, result: 1441031
+lua d15_2, elapsed_sec: 4.55s, result: 1425169
+lua d16_1, elapsed_sec: 0.16s, result: 122492
+lua d16_2, elapsed_sec: 0.34s, result: 520
+lua d17_1, elapsed_sec: 0.00s, result: 2,4,1,3,7,5,0,3,4,3,1,5,5,5,3,0
+lua d17_2, elapsed_sec: 54.85s, result: 236580836040301
+lua d18_1, elapsed_sec: 0.01s, result: 322
+lua d18_2, elapsed_sec: 0.03s, result: 60,21
+lua d19_1, elapsed_sec: 0.18s, result: 336
+lua d19_2, elapsed_sec: 0.68s, result: 758890600222015
+lua d20_1, elapsed_sec: 0.07s, result: 1502
+lua d20_2, elapsed_sec: 0.55s, result: 1028136
+lua d21_1, elapsed_sec: 0.02s, result: 154208
+lua d21_2, elapsed_sec: 0.01s, result: 188000493837892
+lua d22_1, elapsed_sec: 0.09s, result: 14622549304
+lua d22_2, elapsed_sec: 0.59s, result: 1735
+lua d23_1, elapsed_sec: 0.00s, result: 1352
+lua d23_2, elapsed_sec: 0.33s, result: dm,do,fr,gf,gh,gy,iq,jb,kt,on,rg,xf,ze
+lua d24_1, elapsed_sec: 0.00s, result: 56729630917616
+luajit d24_2, elapsed_sec: 76.65s, result: bjm,hsw,kbk,nvr,skf,wkr,z13,z18
+lua d25_1, elapsed_sec: 0.00s, result: 3320
+Above 1s: 4
