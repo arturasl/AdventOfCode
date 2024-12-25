@@ -12,12 +12,31 @@ local function read()
     return robots
 end
 
-local function main()
-    -- local width, height = 11, 7
-    -- local time = 100
-    local width, height = 101, 103
-    local robots = read()
+local function draw_robots(time, robots, height, width)
+    print("############### ", time, " ###############")
 
+    local map = {}
+    for y = 1, height do
+        map[y] = {}
+        for x = 1, width do
+            map[y][x] = "."
+        end
+    end
+
+    for _, robot in ipairs(robots) do
+        map[robot.y + 1][robot.x + 1] = "x"
+    end
+
+    for y = 1, height do
+        for x = 1, width do
+            io.write(map[y][x])
+        end
+        io.write("\n")
+    end
+    print(time)
+end
+
+local function neighbour_based(robots, height, width)
     local around = {
         { y = 0, x = 1 },
         { y = -1, x = 0 },
@@ -63,24 +82,22 @@ local function main()
 
         if best_score < have_around then
             best_score = have_around
-            print("############### ", time, " (around: ", have_around, ") ###############")
-            for y = 1, height do
-                for x = 1, width do
-                    if map[y][x] then
-                        io.write("x")
-                    else
-                        io.write(".")
-                    end
-                end
-                io.write("\n")
-            end
-            print(time)
+            draw_robots(time, next_robots, height, width)
         end
 
         for _, robot in ipairs(next_robots) do
             map[robot.y + 1][robot.x + 1] = false
         end
     end
+end
+
+local function main()
+    -- local width, height = 11, 7
+    -- local time = 100
+    local width, height = 101, 103
+    local robots = read()
+
+    neighbour_based(robots, height, width)
 end
 
 main()
