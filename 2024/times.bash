@@ -1,6 +1,6 @@
 #!/bin/bash
 
-declare -rA jitted=(["d14_2"]=1 ["d24_2"]=1)
+declare -rA jitted=(["d24_2"]=1)
 
 time=/usr/bin/time
 above_1s=0

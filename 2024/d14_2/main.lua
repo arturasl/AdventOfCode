@@ -91,13 +91,47 @@ local function neighbour_based(robots, height, width)
     end
 end
 
+local function stats_based(robots, height, width)
+    local next_robots = {}
+
+    local best_score = height * width * #robots
+    for time = 0, width * height + 1 do
+        for i, robot in ipairs(robots) do
+            next_robots[i] = {
+                y = (robot.pos.y + robot.d.y * time) % height,
+                x = (robot.pos.x + robot.d.x * time) % width,
+            }
+        end
+
+        local avg_y, avg_x = 0, 0
+        for _, robot in ipairs(next_robots) do
+            avg_y = avg_y + robot.y
+            avg_x = avg_x + robot.x
+        end
+        avg_y = avg_y / #robots
+        avg_x = avg_x / #robots
+
+        local score = 0
+        for _, robot in ipairs(next_robots) do
+            score = score + math.abs(avg_y - robot.y) + math.abs(avg_x - robot.x)
+        end
+
+        if score < best_score then
+            best_score = score
+            -- draw_robots(time, next_robots, height, width)
+            print(time)
+        end
+    end
+end
+
 local function main()
     -- local width, height = 11, 7
     -- local time = 100
     local width, height = 101, 103
     local robots = read()
 
-    neighbour_based(robots, height, width)
+    -- neighbour_based(robots, height, width)
+    stats_based(robots, height, width)
 end
 
 main()
