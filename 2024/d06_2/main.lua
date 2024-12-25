@@ -32,38 +32,43 @@ local function find_path(map, cur_y, cur_x, should_calc_visited)
     end
 end
 
-local map = {}
-local cur_y, cur_x = nil, nil
-for line in io.lines() do
-    line = line:gsub("^%s+", ""):gsub("%s+$", "")
-    if line ~= "" then
-        map[#map + 1] = {}
-        for i = 1, #line do
-            map[#map][i] = line:sub(i, i)
-            assert(string.find(".#^", map[#map][i]) ~= nil, map[#map][i] .. ": " .. line)
+local function read()
+    local data = { map = {}, cur_y = nil, cur_x = nil }
+    for line in io.lines() do
+        line = line:gsub("^%s+", ""):gsub("%s+$", "")
+        if line ~= "" then
+            data.map[#data.map + 1] = {}
+            for i = 1, #line do
+                data.map[#data.map][i] = line:sub(i, i)
+                assert(string.find(".#^", data.map[#data.map][i]) ~= nil, data.map[#data.map][i] .. ": " .. line)
 
-            if map[#map][i] == "^" then
-                assert(cur_y == nil)
-                cur_y = #map
-                cur_x = i
+                if data.map[#data.map][i] == "^" then
+                    assert(data.cur_y == nil and data.cur_x == nil)
+                    data.cur_y = #data.map
+                    data.cur_x = i
+                end
             end
         end
     end
+    assert(data.cur_y ~= nil and data.cur_x ~= nil)
+    return data
 end
 
-assert(cur_y ~= nil)
+local function main()
+    local data = read()
+    local _, visited = find_path(data.map, data.cur_y, data.cur_x, true)
+    local num_cycles = 0
+    for visited_pos, _ in pairs(visited) do
+        local str_y, str_x = visited_pos:match("(%d+) (%d+)")
+        local y, x = tonumber(str_y), tonumber(str_x)
 
-local _, visited = find_path(map, cur_y, cur_x, true)
-local num_cycles = 0
-for visited_pos, _ in pairs(visited) do
-    local str_y, str_x = visited_pos:match("(%d+) (%d+)")
-    local y, x = tonumber(str_y), tonumber(str_x)
+        data.map[y][x] = "#"
+        local is_cycled, _ = find_path(data.map, data.cur_y, data.cur_x, false)
+        data.map[y][x] = "."
 
-    map[y][x] = "#"
-    local is_cycled, _ = find_path(map, cur_y, cur_x, false)
-    map[y][x] = "."
-
-    num_cycles = num_cycles + (is_cycled and 1 or 0)
+        num_cycles = num_cycles + (is_cycled and 1 or 0)
+    end
+    print(num_cycles)
 end
 
-print(num_cycles)
+main()
