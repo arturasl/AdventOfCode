@@ -1,5 +1,3 @@
-local dump = require("dump")
-
 local map = {}
 local cur_y, cur_x = nil, nil
 for line in io.lines() do
@@ -30,14 +28,6 @@ local directions = {
 local cur_dir = 1
 
 for _ = 1, #map * #map[1] do
-    for i = 1, #map do
-        for j = 1, #map[i] do
-            io.write(map[i][j])
-        end
-        print("")
-    end
-    print("")
-
     map[cur_y][cur_x] = "x"
 
     local next_y = cur_y + directions[cur_dir].dy
@@ -50,7 +40,6 @@ for _ = 1, #map * #map[1] do
     else
         cur_dir = (cur_dir + 1) % (#directions + 1)
         cur_dir = cur_dir == 0 and 1 or cur_dir
-        print(cur_dir)
     end
 end
 
