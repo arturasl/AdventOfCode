@@ -1,4 +1,4 @@
-local function find_path(map, cur_y, cur_x)
+local function find_path(map, cur_y, cur_x, should_calc_visited)
     local dirs = {
         { dy = -1, dx = 0 },
         { dy = 0, dx = 1 },
@@ -10,7 +10,9 @@ local function find_path(map, cur_y, cur_x)
     local visited = {}
 
     while true do
-        visited_poses[string.format("%d %d", cur_y, cur_x)] = true
+        if should_calc_visited then
+            visited_poses[string.format("%d %d", cur_y, cur_x)] = true
+        end
         local state = string.format("%d %d %d", cur_y, cur_x, cur_dir)
         if visited[state] ~= nil then
             return true, visited_poses
@@ -51,14 +53,14 @@ end
 
 assert(cur_y ~= nil)
 
-local _, visited = find_path(map, cur_y, cur_x)
+local _, visited = find_path(map, cur_y, cur_x, true)
 local num_cycles = 0
 for visited_pos, _ in pairs(visited) do
     local str_y, str_x = visited_pos:match("(%d+) (%d+)")
     local y, x = tonumber(str_y), tonumber(str_x)
 
     map[y][x] = "#"
-    local is_cycled, _ = find_path(map, cur_y, cur_x)
+    local is_cycled, _ = find_path(map, cur_y, cur_x, false)
     map[y][x] = "."
 
     num_cycles = num_cycles + (is_cycled and 1 or 0)
