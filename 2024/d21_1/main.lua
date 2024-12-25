@@ -1,5 +1,4 @@
 local heap = require("binaryheap")
-local inspect = require("inspect")
 local mk = require("multikey")
 
 local num_pad = {
@@ -27,10 +26,6 @@ local function read()
     return tests
 end
 
-local function same_pos(lhs, rhs)
-    return lhs.y == rhs.y and lhs.x == rhs.x
-end
-
 local function add_pos(lhs, rhs)
     return { y = lhs.y + rhs.y, x = lhs.x + rhs.x }
 end
@@ -41,11 +36,6 @@ local function cpy_arr(arr)
         cpy[i] = arr[i]
     end
     return cpy
-end
-
-local function append_arr(arr, el)
-    arr[#arr + 1] = el
-    return arr
 end
 
 local function join_arr(arr, sep)
