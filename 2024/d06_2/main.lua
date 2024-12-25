@@ -1,17 +1,16 @@
-local function find_path(map, cur_y, cur_x, should_calc_visited)
+local function find_path(map, cur_y, cur_x, cur_dir, should_calc_visited)
     local dirs = {
         { dy = -1, dx = 0 },
         { dy = 0, dx = 1 },
         { dy = 1, dx = 0 },
         { dy = 0, dx = -1 },
     }
-    local cur_dir = 1
     local visited_poses = {}
     local visited = {}
 
     while true do
         if should_calc_visited then
-            visited_poses[string.format("%d %d", cur_y, cur_x)] = true
+            visited_poses[#visited_poses + 1] = { y = cur_y, x = cur_x, dir = cur_dir }
         end
         local state = string.format("%d %d %d", cur_y, cur_x, cur_dir)
         if visited[state] ~= nil then
@@ -56,17 +55,20 @@ end
 
 local function main()
     local data = read()
-    local _, visited = find_path(data.map, data.cur_y, data.cur_x, true)
+    local _, visited = find_path(data.map, data.cur_y, data.cur_x, 1, true)
     local num_cycles = 0
-    for visited_pos, _ in pairs(visited) do
-        local str_y, str_x = visited_pos:match("(%d+) (%d+)")
-        local y, x = tonumber(str_y), tonumber(str_x)
 
-        data.map[y][x] = "#"
-        local is_cycled, _ = find_path(data.map, data.cur_y, data.cur_x, false)
-        data.map[y][x] = "."
+    local check = {}
+    for i, pos in ipairs(visited) do
+        local str_pos = string.format("%d %d", pos.y, pos.x)
+        if check[str_pos] == nil and i > 1 then
+            check[str_pos] = true
+            data.map[pos.y][pos.x] = "#"
+            local is_cycled, _ = find_path(data.map, visited[i - 1].y, visited[i - 1].x, visited[i - 1].dir, false)
+            data.map[pos.y][pos.x] = "."
 
-        num_cycles = num_cycles + (is_cycled and 1 or 0)
+            num_cycles = num_cycles + (is_cycled and 1 or 0)
+        end
     end
     print(num_cycles)
 end
