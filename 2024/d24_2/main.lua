@@ -193,6 +193,7 @@ local function main()
             end,
             str_op = "&",
             arg_less_bits = 0,
+            num_canaries = 10,
         },
         ["large"] = {
             bad_wires = 8,
@@ -201,6 +202,7 @@ local function main()
             end,
             str_op = "+",
             arg_less_bits = 1,
+            num_canaries = 5,
         },
     }
     local prob = probs["large"]
@@ -213,7 +215,7 @@ local function main()
     local non_input_gates = find_non_inpute_gates(graph)
 
     local canaries = {}
-    for _ = 1, 10 do
+    for _ = 1, prob.num_canaries do
         local lhs = gen_random_bits(num_z_bits - prob.arg_less_bits)
         local rhs = gen_random_bits(num_z_bits - prob.arg_less_bits)
         local r = prob.fn_to_optimize(bits_to_int(lhs), bits_to_int(rhs))
