@@ -33,7 +33,7 @@ local function calc_combo_val(num, data)
     assert(false, num)
 end
 
-local function expect_run_produces(data)
+local function run(data)
     local produced = {}
     while data.pointer < #data.program do
         assert(data.pointer + 1 < #data.program)
@@ -58,12 +58,6 @@ local function expect_run_produces(data)
             data.registers["B"] = data.registers["B"] ~ data.registers["C"]
         elseif op == 5 then
             produced[#produced + 1] = combo % 8
-            if #produced > #data.program then
-                return nil
-            end
-            if produced[#produced] ~= data.program[#produced] then
-                return #produced - 1
-            end
         elseif op == 6 then
             assert(combo >= 0)
             data.registers["B"] = data.registers["A"] >> combo
@@ -77,7 +71,7 @@ local function expect_run_produces(data)
         data.pointer = data.pointer + 2
     end
 
-    return #produced
+    return produced
 end
 
 local function new_data(orig, new_A)
@@ -94,39 +88,32 @@ end
 
 local function find(orig)
     local best_a = nil
-    local best_correct_up_to = 0
+    local block_size = 3
 
-    local function find_internal(start, A)
-        if best_a ~= nil and A >= best_a then
+    local function find_internal(want_last, A)
+        if want_last == #orig.program + 1 then
+            best_a = math.min(best_a or A, A)
             return
         end
 
-        local cur_correct_up_to = expect_run_produces(new_data(orig, A)) or 0
+        for x = 0, ((1 << block_size) - 1) do
+            local cur_a = (A << block_size) | x
+            local result = run(new_data(orig, cur_a))
 
-        if cur_correct_up_to >= best_correct_up_to then
-            if cur_correct_up_to == #orig.program then
-                best_a = A
-                return
+            local ok = true
+            local oft = #orig.program - want_last + 1
+            for i = oft, #orig.program do
+                ok = ok and result[i - oft + 1] == orig.program[i]
             end
 
-            print(best_a, cur_correct_up_to, start, A)
-            best_correct_up_to = cur_correct_up_to
-        end
-
-        for len = 1, math.min(63 - start, 7) do
-            for x = 0, (1 << len) - 1 do
-                local new_A = (x << start) | A
-
-                local correct_up_to = expect_run_produces(new_data(orig, new_A)) or 0
-                if correct_up_to > cur_correct_up_to then
-                    find_internal(start + len, new_A)
-                end
+            if ok then
+                find_internal(want_last + 1, cur_a)
             end
         end
     end
     find_internal = require("multikey.memoize")(find_internal)
-    find_internal(0, 0)
 
+    find_internal(1, 0)
     return best_a
 end
 
