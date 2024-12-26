@@ -92,44 +92,47 @@ local function new_data(orig, new_A)
     }
 end
 
-local best_a = nil
-local best_correct_up_to = 0
-local orig = { program = {} }
+local function find(orig)
+    local best_a = nil
+    local best_correct_up_to = 0
 
-local function find(start, A)
-    if best_a ~= nil and A >= best_a then
-        return
-    end
-
-    local cur_correct_up_to = expect_run_produces(new_data(orig, A)) or 0
-
-    if cur_correct_up_to >= best_correct_up_to then
-        if cur_correct_up_to == #orig.program then
-            best_a = A
+    local function find_internal(start, A)
+        if best_a ~= nil and A >= best_a then
             return
         end
 
-        print(best_a, cur_correct_up_to, start, A)
-        best_correct_up_to = cur_correct_up_to
-    end
+        local cur_correct_up_to = expect_run_produces(new_data(orig, A)) or 0
 
-    for len = 1, math.min(63 - start, 7) do
-        for x = 0, (1 << len) - 1 do
-            local new_A = ((x & ((1 << len) - 1)) << start) | A
+        if cur_correct_up_to >= best_correct_up_to then
+            if cur_correct_up_to == #orig.program then
+                best_a = A
+                return
+            end
 
-            local correct_up_to = expect_run_produces(new_data(orig, new_A)) or 0
-            if correct_up_to > cur_correct_up_to then
-                find(start + len, new_A)
+            print(best_a, cur_correct_up_to, start, A)
+            best_correct_up_to = cur_correct_up_to
+        end
+
+        for len = 1, math.min(63 - start, 7) do
+            for x = 0, (1 << len) - 1 do
+                local new_A = (x << start) | A
+
+                local correct_up_to = expect_run_produces(new_data(orig, new_A)) or 0
+                if correct_up_to > cur_correct_up_to then
+                    find_internal(start + len, new_A)
+                end
             end
         end
     end
+    find_internal = require("multikey.memoize")(find_internal)
+    find_internal(0, 0)
+
+    return best_a
 end
-find = require("multikey.memoize")(find)
 
 local function main()
-    orig = read()
-    find(0, 0)
-    print(best_a)
+    local data = read()
+    print(find(data))
 end
 
 main()
