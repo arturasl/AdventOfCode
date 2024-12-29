@@ -11,7 +11,16 @@ path = "src/d01_1/main.rs"
 name = "d01_2"
 path = "src/d01_2/main.rs"
 
+[[bin]]
+name = "d02_1"
+path = "src/d02_1/main.rs"
+
+[[bin]]
+name = "d02_2"
+path = "src/d02_2/main.rs"
+
 [dependencies]
 anyhow = "1.0"
 itertools = "0.13"
+regex = "1.11.1"
 resiter = "0.5.0"
