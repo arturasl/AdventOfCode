@@ -1,7 +1,6 @@
 use anyhow::{bail, Context, Ok, Result};
 use itertools::Itertools;
 use regex::Regex;
-use resiter::AndThen;
 use std::io::{self, BufRead};
 use std::thread;
 
@@ -17,23 +16,25 @@ fn run() -> Result<()> {
         .lock()
         .lines()
         .map(|l| Ok(l?.trim().to_owned()))
-        .and_then_ok(|l| {
-            let captures = re_dir.captures(&l).context("")?;
-            let amount: i64 = captures["amount"].parse()?;
-            Ok(match &captures["name"] {
-                "forward" => Pos {
-                    h_pos: amount,
-                    depth: 0,
-                },
-                "down" => Pos {
-                    h_pos: 0,
-                    depth: amount,
-                },
-                "up" => Pos {
-                    h_pos: 0,
-                    depth: -amount,
-                },
-                _ => bail!(""),
+        .map(|l| {
+            l.and_then(|l| {
+                let captures = re_dir.captures(&l).context("")?;
+                let amount: i64 = captures["amount"].parse()?;
+                Ok(match &captures["name"] {
+                    "forward" => Pos {
+                        h_pos: amount,
+                        depth: 0,
+                    },
+                    "down" => Pos {
+                        h_pos: 0,
+                        depth: amount,
+                    },
+                    "up" => Pos {
+                        h_pos: 0,
+                        depth: -amount,
+                    },
+                    _ => bail!(""),
+                })
             })
         })
         .fold_ok(Pos { h_pos: 0, depth: 0 }, |prev, cur| Pos {

@@ -1,6 +1,5 @@
 use anyhow::{Ok, Result};
 use itertools::Itertools;
-use resiter::AndThen;
 use std::io::{self, BufRead};
 use std::thread;
 
@@ -10,7 +9,7 @@ fn run() -> Result<()> {
         .lines()
         .map(|l| Ok(l?.trim().to_owned()))
         .filter_ok(|l| !l.is_empty())
-        .and_then_ok(|l| Ok(l.parse()?))
+        .map(|l| l.and_then(|l| Ok(l.parse()?)))
         .collect::<Result<_>>()?;
 
     let result: i64 = nums
