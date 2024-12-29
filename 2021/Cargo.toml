@@ -14,4 +14,4 @@ path = "src/d01_2/main.rs"
 [dependencies]
 anyhow = "1.0"
 itertools = "0.13"
-iterr = "0.2.0"
+resiter = "0.5.0"

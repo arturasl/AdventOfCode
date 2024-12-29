@@ -1,6 +1,6 @@
 use anyhow::{Ok, Result};
-use iterr::ItErr;
 use itertools::Itertools;
+use resiter::AndThen;
 use std::io::{self, BufRead};
 use std::thread;
 
@@ -9,7 +9,8 @@ fn run() -> Result<()> {
         .lock()
         .lines()
         .map(|l| Ok(l?.trim().to_owned()))
-        .lift_err(|iter| iter.filter(|l| !l.is_empty()).map(|l| Ok(l.parse()?)))
+        .filter_ok(|l| !l.is_empty())
+        .and_then_ok(|l| Ok(l.parse()?))
         .collect::<Result<_>>()?;
 
     let tripes: Vec<i64> = nums.windows(3).map(|wnd| wnd.into_iter().sum()).collect();
