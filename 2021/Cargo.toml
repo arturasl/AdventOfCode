@@ -1,0 +1,17 @@
+[package]
+name = "y2021"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "d01_1"
+path = "src/d01_1/main.rs"
+
+[[bin]]
+name = "d01_2"
+path = "src/d01_2/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+itertools = "0.13"
+iterr = "0.2.0"
