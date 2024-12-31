@@ -1,3 +1,9 @@
-zzz d01_1
-zzz d01_2
+cargo d01_1, elapsed_sec: 0.03s, result: 1655
+cargo d01_2, elapsed_sec: 0.02s, result: 1683
+cargo d02_1, elapsed_sec: 0.02s, result: 1580000
+cargo d02_2, elapsed_sec: 0.02s, result: 1251263225
+cargo d03_1, elapsed_sec: 0.02s, result: 1458194
+cargo d03_2, elapsed_sec: 0.02s, result: 1100010101 * 111000000010 = 2829354
+cargo d04_1, elapsed_sec: 0.02s, result: 41503
+cargo d04_2, elapsed_sec: 0.02s, result: 3178
 Above 1s: 0
