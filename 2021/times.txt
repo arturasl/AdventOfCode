@@ -6,4 +6,6 @@ cargo d03_1, elapsed_sec: 0.02s, result: 1458194
 cargo d03_2, elapsed_sec: 0.02s, result: 1100010101 * 111000000010 = 2829354
 cargo d04_1, elapsed_sec: 0.02s, result: 41503
 cargo d04_2, elapsed_sec: 0.02s, result: 3178
+cargo d05_1, elapsed_sec: 0.03s, result: 6841
+cargo d05_2, elapsed_sec: 0.04s, result: 19258
 Above 1s: 0
