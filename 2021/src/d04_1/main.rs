@@ -48,11 +48,9 @@ fn run() -> Result<()> {
             })
             .collect();
         let draw_times_x_to_col: Vec<Vec<Option<i64>>> = (0..table.len())
-            .into_iter()
             .map(|x| {
                 (0..table.len())
-                    .into_iter()
-                    .map(|y| draw_times_y_to_row[y][x].clone())
+                    .map(|y| draw_times_y_to_row[y][x])
                     .collect()
             })
             .collect();
