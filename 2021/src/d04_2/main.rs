@@ -1,12 +1,12 @@
+use ahash::AHashMap;
 use anyhow::{ensure, Context, Ok, Result};
 use regex::Regex;
-use std::collections::HashMap;
 use std::io::{self, BufRead};
 use std::thread;
 
-fn read() -> Result<(HashMap<i64, i64>, Vec<Vec<Vec<i64>>>)> {
+fn read() -> Result<(AHashMap<i64, i64>, Vec<Vec<Vec<i64>>>)> {
     let re_num = Regex::new(r"\d+").unwrap();
-    let mut draw_to_first_pos: HashMap<i64, i64> = HashMap::new();
+    let mut draw_to_first_pos: AHashMap<i64, i64> = AHashMap::new();
     let mut tables: Vec<Vec<Vec<i64>>> = vec![];
 
     for maybe_line in io::stdin().lock().lines() {

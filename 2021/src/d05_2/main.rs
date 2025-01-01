@@ -1,13 +1,13 @@
+use ahash::AHashMap;
 use anyhow::{Context, Ok, Result};
 use itertools::Itertools;
 use regex::Regex;
-use std::collections::HashMap;
 use std::io::{self, BufRead};
 use std::thread;
 
 fn run() -> Result<()> {
     let re_path = Regex::new(r"^(\d+),(\d+)->(\d+),(\d+)$").unwrap();
-    let mut hits: HashMap<(i64, i64), i64> = HashMap::new();
+    let mut hits: AHashMap<(i64, i64), i64> = AHashMap::new();
     for maybe_line in io::stdin().lock().lines() {
         let line = maybe_line?.replace(" ", "");
         if line.is_empty() {

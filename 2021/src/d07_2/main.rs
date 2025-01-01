@@ -1,6 +1,6 @@
+use ahash::AHashMap;
 use anyhow::{Context, Ok, Result};
 use itertools::Itertools;
-use std::collections::HashMap;
 use std::io::{self, BufRead};
 use std::thread;
 
@@ -10,7 +10,7 @@ fn find_distances(nums: &Vec<i64>) -> Result<Vec<i64>> {
         nums.iter().max().context("")?,
     );
 
-    let mut hist: HashMap<i64, i64> = HashMap::new();
+    let mut hist: AHashMap<i64, i64> = AHashMap::new();
     for num in nums.iter() {
         *hist.entry(*num).or_insert(0) += 1;
     }
