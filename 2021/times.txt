@@ -6,8 +6,8 @@ cargo d03_1, elapsed_sec: 0.00s, result: 1458194
 cargo d03_2, elapsed_sec: 0.00s, result: 1100010101 * 111000000010 = 2829354
 cargo d04_1, elapsed_sec: 0.00s, result: 41503
 cargo d04_2, elapsed_sec: 0.00s, result: 3178
-cargo d05_1, elapsed_sec: 0.01s, result: 6841
-cargo d05_2, elapsed_sec: 0.01s, result: 19258
+cargo d05_1, elapsed_sec: 0.00s, result: 6841
+cargo d05_2, elapsed_sec: 0.00s, result: 19258
 cargo d06_1, elapsed_sec: 0.00s, result: 380612
 cargo d06_2, elapsed_sec: 0.00s, result: 1710166656900
 cargo d07_1, elapsed_sec: 0.00s, result: 349357
@@ -16,4 +16,6 @@ cargo d08_1, elapsed_sec: 0.00s, result: 355
 cargo d08_2, elapsed_sec: 0.01s, result: 983030
 cargo d09_1, elapsed_sec: 0.00s, result: 554
 cargo d09_2, elapsed_sec: 0.00s, result: 1017792
+cargo d10_1, elapsed_sec: 0.00s, result: 323613
+cargo d10_2, elapsed_sec: 0.00s, result: 3103006161
 Above 1s: 0

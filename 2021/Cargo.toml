@@ -75,6 +75,14 @@ path = "src/d09_1/main.rs"
 name = "d09_2"
 path = "src/d09_2/main.rs"
 
+[[bin]]
+name = "d10_1"
+path = "src/d10_1/main.rs"
+
+[[bin]]
+name = "d10_2"
+path = "src/d10_2/main.rs"
+
 [dependencies]
 anyhow = "1.0"
 itertools = "0.13"
