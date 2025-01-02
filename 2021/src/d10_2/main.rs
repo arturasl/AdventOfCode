@@ -33,10 +33,8 @@ fn run() -> Result<()> {
         }
 
         if ok {
-            results.push(stack.into_iter().rev().fold(Ok(0), |prev, char| {
-                prev.and_then(|prev| {
-                    Ok(prev * 5 + open_to_points.get(&char).context(format!("{}", char))?)
-                })
+            results.push(stack.into_iter().rev().try_fold(0, |prev, char| {
+                Ok(prev * 5 + open_to_points.get(&char).context(format!("{}", char))?)
             })?);
         }
     }
