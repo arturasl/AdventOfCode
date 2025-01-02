@@ -22,4 +22,6 @@ cargo d11_1, elapsed_sec: 0.00s, result: 1562
 cargo d11_2, elapsed_sec: 0.00s, result: 268
 cargo d12_1, elapsed_sec: 0.00s, result: 4792
 cargo d12_2, elapsed_sec: 0.00s, result: 133360
+cargo d13_1, elapsed_sec: 0.00s, result: 743
+cargo d13_2, elapsed_sec: 0.00s, result: 94
 Above 1s: 0
