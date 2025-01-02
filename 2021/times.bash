@@ -7,7 +7,7 @@ while IFS= read -r main_file || [[ -n "$main_file" ]]; do
 
     program='cargo'
     $program build --release --bin "$day" 2>/dev/null
-    output="$($time --format '%e' $program run --release --bin "$day" < "./src/${day}/large.in" 2>&1)"
+    output="$($time --format '%e' "./target/release/${day}" < "./src/${day}/large.in" 2>&1)"
     elapsed_sec=$(echo "$output" | tail -n 1)
     if [[ ! "$elapsed_sec" =~ ^0\. ]]; then
         above_1s=$((above_1s + 1))
