@@ -32,7 +32,7 @@ fn run() -> Result<()> {
             ));
         } else if let Some(cap_fold) = re_fold.captures(&line) {
             folds.push((
-                cap_fold["coord"].to_string().chars().nth(0).context("")?,
+                cap_fold["coord"].to_string().chars().next().context("")?,
                 cap_fold["pos"].parse::<i64>().context("")?,
             ));
         } else {
@@ -68,7 +68,7 @@ fn run() -> Result<()> {
         for x in 0..mx + 1 {
             print!("{}", if map.contains(&(y, x)) { '#' } else { '.' });
         }
-        println!("");
+        println!();
     }
 
     println!("{}", map.len());

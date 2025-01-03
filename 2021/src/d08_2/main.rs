@@ -5,7 +5,7 @@ use rayon::prelude::*;
 use std::io::{self, BufRead};
 use std::thread;
 
-fn map(part: &String, mapping: &AHashMap<char, char>) -> String {
+fn map(part: &str, mapping: &AHashMap<char, char>) -> String {
     part.chars()
         .map(|p| *mapping.get(&p).unwrap())
         .sorted_unstable()
@@ -28,7 +28,7 @@ fn run() -> Result<()> {
         .map(|perm| {
             all_letters
                 .iter()
-                .zip_eq(perm.into_iter())
+                .zip_eq(perm)
                 .map(|(a, b)| (*a, *b))
                 .collect()
         })
@@ -53,19 +53,18 @@ fn run() -> Result<()> {
                 if parts
                     .iter()
                     .take(10)
-                    .all(|part| nums.contains_key(&map(part, &mapping)))
+                    .all(|part| nums.contains_key(&map(part, mapping)))
                 {
                     return parts
                         .iter()
                         .rev()
                         .take(4)
                         .rev()
-                        .map(|part| nums.get(&map(part, &mapping)).unwrap())
+                        .map(|part| nums.get(&map(part, mapping)).unwrap())
                         .fold(0, |cur, digit| cur * 10 + digit);
                 }
             }
-            assert!(false);
-            0
+            panic!();
         })
         .sum::<i64>();
 

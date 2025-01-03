@@ -11,7 +11,7 @@ fn ch_to_idx(ch: char) -> usize {
     ch as usize - 'A' as usize
 }
 
-fn add(lhs: &Vec<usize>, rhs: &Vec<usize>) -> Vec<usize> {
+fn add(lhs: &[usize], rhs: &Vec<usize>) -> Vec<usize> {
     lhs.iter().zip_eq(rhs).map(|(a, b)| a + b).collect()
 }
 
@@ -63,7 +63,7 @@ fn run() -> Result<()> {
     }
     result[inp[inp.len() - 1]] += 1;
 
-    result = result.into_iter().filter(|cnt| *cnt > 0).collect();
+    result.retain(|cnt| *cnt > 0);
     let (mi, ma) = result.iter().minmax().into_option().context("")?;
     println!("{}", ma - mi);
 

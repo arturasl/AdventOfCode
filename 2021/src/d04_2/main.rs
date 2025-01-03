@@ -4,7 +4,12 @@ use regex::Regex;
 use std::io::{self, BufRead};
 use std::thread;
 
-fn read() -> Result<(AHashMap<i64, i64>, Vec<Vec<Vec<i64>>>)> {
+struct Input {
+    draw_to_first_pos: AHashMap<i64, i64>,
+    tables: Vec<Vec<Vec<i64>>>,
+}
+
+fn read() -> Result<Input> {
     let re_num = Regex::new(r"\d+").unwrap();
     let mut draw_to_first_pos: AHashMap<i64, i64> = AHashMap::new();
     let mut tables: Vec<Vec<Vec<i64>>> = vec![];
@@ -31,11 +36,17 @@ fn read() -> Result<(AHashMap<i64, i64>, Vec<Vec<Vec<i64>>>)> {
         tables.pop();
     }
 
-    Ok((draw_to_first_pos, tables))
+    Ok(Input {
+        draw_to_first_pos,
+        tables,
+    })
 }
 
 fn run() -> Result<()> {
-    let (draw_to_first_pos, tables) = read()?;
+    let Input {
+        draw_to_first_pos,
+        tables,
+    } = read()?;
 
     let mut best: Option<(i64, i64)> = None;
     for table in tables.into_iter() {
@@ -59,13 +70,7 @@ fn run() -> Result<()> {
             .iter()
             .chain(draw_times_x_to_col.iter())
             .filter(|maybe_draw_times| maybe_draw_times.iter().all(Option::is_some))
-            .map(|maybe_draw_times| {
-                maybe_draw_times
-                    .into_iter()
-                    .map(|x| x.unwrap())
-                    .max()
-                    .unwrap()
-            })
+            .map(|maybe_draw_times| maybe_draw_times.iter().map(|x| x.unwrap()).max().unwrap())
             .min();
 
         if let Some(local_draw_time) = maybe_local_draw_time {

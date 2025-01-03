@@ -12,7 +12,7 @@ fn run() -> Result<()> {
         .map(|l| l.and_then(|l| Ok(l.parse()?)))
         .collect::<Result<_>>()?;
 
-    let tripes: Vec<i64> = nums.windows(3).map(|wnd| wnd.into_iter().sum()).collect();
+    let tripes: Vec<i64> = nums.windows(3).map(|wnd| wnd.iter().sum()).collect();
 
     let result: i64 = tripes
         .into_iter()

@@ -30,7 +30,7 @@ fn traverse(
         visited.remove(cur);
     }
 
-    return Ok(result);
+    Ok(result)
 }
 
 fn run() -> Result<()> {

@@ -3,21 +3,12 @@ use itertools::Itertools;
 use std::io::{self, BufRead};
 use std::thread;
 
-fn print_map(map: &Vec<Vec<i64>>) {
-    for line in map.iter() {
-        for char in line.iter() {
-            print!("{}", char);
-        }
-        println!("");
-    }
-}
-
 fn next(mut map: Vec<Vec<i64>>) -> (i64, Vec<Vec<i64>>) {
     let mut flashed: Vec<Vec<bool>> = vec![];
-    for y in 0..map.len() {
-        flashed.push(vec![false; map[y].len()]);
-        for x in 0..map[y].len() {
-            map[y][x] += 1;
+    for row in map.iter_mut() {
+        flashed.push(vec![false; row.len()]);
+        for cell in row.iter_mut() {
+            *cell += 1;
         }
     }
 

@@ -32,7 +32,7 @@ fn run() -> Result<()> {
             ));
         } else if let Some(cap_fold) = re_fold.captures(&line) {
             folds.push((
-                cap_fold["coord"].to_string().chars().nth(0).context("")?,
+                cap_fold["coord"].to_string().chars().next().context("")?,
                 cap_fold["pos"].parse::<i64>().context("")?,
             ));
         } else {
@@ -42,7 +42,7 @@ fn run() -> Result<()> {
 
     let mut map: AHashSet<(i64, i64)> = coords.into_iter().collect();
 
-    for (char, bend) in folds {
+    if let Some((char, bend)) = folds.into_iter().next() {
         let mut new_map: AHashSet<(i64, i64)> = AHashSet::new();
         for mut pos in map {
             pos = swap_if_x(pos, char);
@@ -60,7 +60,6 @@ fn run() -> Result<()> {
             new_map.insert(n);
         }
         map = new_map;
-        break;
     }
 
     println!("{}", map.len());

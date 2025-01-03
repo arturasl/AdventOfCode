@@ -51,7 +51,7 @@ fn traverse(
         visited[cur_idx] = false;
     }
 
-    return Ok(result);
+    Ok(result)
 }
 
 fn run() -> Result<()> {
@@ -88,12 +88,9 @@ fn run() -> Result<()> {
         .into_iter()
     {
         let before_from_len = name_to_idx.len();
-        let from_idx = name_to_idx
-            .entry(from.clone())
-            .or_insert(before_from_len)
-            .clone();
+        let from_idx = *name_to_idx.entry(from.clone()).or_insert(before_from_len);
         let before_to_len = name_to_idx.len();
-        let to_idx = name_to_idx.entry(to).or_insert(before_to_len).clone();
+        let to_idx = *name_to_idx.entry(to).or_insert(before_to_len);
 
         while graph.len() <= from_idx {
             graph.push(Node {
@@ -110,8 +107,8 @@ fn run() -> Result<()> {
         node.children.dedup();
     }
 
-    let start_idx = name_to_idx.get("start").context("")?.clone();
-    let end_idx = name_to_idx.get("end").context("")?.clone();
+    let start_idx = *name_to_idx.get("start").context("")?;
+    let end_idx = *name_to_idx.get("end").context("")?;
     let mut visited = vec![false; graph.len()];
 
     println!(

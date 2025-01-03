@@ -40,7 +40,7 @@ fn calc_size(cur: (usize, usize), map: &mut Vec<Vec<i64>>) -> i64 {
         }
     }
 
-    return result;
+    result
 }
 
 fn run() -> Result<()> {
@@ -76,10 +76,7 @@ fn run() -> Result<()> {
     }
 
     sizes.select_nth_unstable_by(3, |x, y| y.cmp(x));
-    println!(
-        "{}",
-        sizes.into_iter().take(3).fold(1, |prev, cur| prev * cur)
-    );
+    println!("{}", sizes.into_iter().take(3).product::<i64>());
 
     Ok(())
 }

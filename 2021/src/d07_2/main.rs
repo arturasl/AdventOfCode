@@ -4,7 +4,7 @@ use itertools::Itertools;
 use std::io::{self, BufRead};
 use std::thread;
 
-fn find_distances(nums: &Vec<i64>) -> Result<Vec<i64>> {
+fn find_distances(nums: &[i64]) -> Result<Vec<i64>> {
     let (mi, ma) = (
         nums.iter().min().context("")?,
         nums.iter().max().context("")?,

@@ -17,7 +17,7 @@ fn run() -> Result<()> {
                     .into_iter()
                     .rev()
                     .take(4)
-                    .filter(|s| vec![2, 4, 3, 7].contains(&s.len()))
+                    .filter(|s| [2, 4, 3, 7].contains(&s.len()))
                     .count() as i64
             })
             .sum::<i64>()
