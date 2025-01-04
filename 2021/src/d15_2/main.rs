@@ -1,8 +1,6 @@
-use ahash::AHashMap;
 use anyhow::{ensure, Context, Ok, Result};
 use itertools::Itertools;
 use std::cmp::Ordering;
-use std::collections::hash_map::Entry;
 use std::collections::BinaryHeap;
 use std::io::{self, BufRead};
 use std::thread;
@@ -16,7 +14,7 @@ struct State {
     y: i64,
     rx: i64,
     x: i64,
-    side: u8,
+    side: i8,
 }
 
 impl Ord for State {
@@ -30,16 +28,16 @@ impl PartialOrd for State {
     }
 }
 
-fn update_visited(
-    state: &State,
-    visited: &mut AHashMap<(i64, i64, i64, i64), (i64, u8)>,
-) -> Option<(i64, u8)> {
-    let entry = visited.entry((state.ry, state.y, state.rx, state.x));
-    if let Entry::Occupied(prev) = entry {
-        Some(*prev.get())
-    } else {
-        entry.or_insert((state.cost, state.side));
+type Visited = Vec<Vec<Vec<Vec<(i64, i8)>>>>;
+
+fn update_visited(state: &State, visited: &mut Visited) -> Option<(i64, i8)> {
+    let prev =
+        &mut visited[state.ry as usize][state.y as usize][state.rx as usize][state.x as usize];
+    if prev.0 == -1 {
+        *prev = (state.cost, state.side);
         None
+    } else {
+        Some(*prev)
     }
 }
 
@@ -60,8 +58,11 @@ fn run() -> Result<()> {
     let (height, width) = (map.len() as i64, map[0].len() as i64);
 
     let mut heap = BinaryHeap::new();
-    let mut visited: AHashMap<(i64, i64, i64, i64), (i64, u8)> =
-        AHashMap::with_capacity((height * width * MAX_REPEATS) as usize);
+    let mut visited: Visited =
+        vec![
+            vec![vec![vec![(-1, -1); width as usize]; MAX_REPEATS as usize + 1]; height as usize];
+            MAX_REPEATS as usize + 1
+        ];
 
     let start_state = State {
         cost: 0,
