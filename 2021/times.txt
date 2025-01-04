@@ -28,4 +28,8 @@ cargo d14_1, elapsed_sec: 0.00s, result: 2899
 cargo d14_2, elapsed_sec: 0.00s, result: 3528317079545
 cargo d15_1, elapsed_sec: 0.00s, result: 373
 cargo d15_2, elapsed_sec: 0.01s, result: 2869
+cargo d16_1, elapsed_sec: 0.00s, result: 963
+cargo d16_2, elapsed_sec: 0.00s, result: 1549026292886
+cargo d17_1, elapsed_sec: 0.00s, result: 25200
+cargo d17_2, elapsed_sec: 0.00s, result: 3012
 Above 1s: 0
