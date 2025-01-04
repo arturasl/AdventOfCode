@@ -30,15 +30,23 @@ impl PartialOrd for State {
 
 type Visited = Vec<Vec<Vec<Vec<(i64, i8)>>>>;
 
-fn update_visited(state: &State, visited: &mut Visited) -> Option<(i64, i8)> {
-    let prev =
-        &mut visited[state.ry as usize][state.y as usize][state.rx as usize][state.x as usize];
-    if prev.0 == -1 {
-        *prev = (state.cost, state.side);
-        None
-    } else {
-        Some(*prev)
+fn get_visited<'a>(state: &State, visited: &'a mut Visited) -> &'a mut (i64, i8) {
+    &mut visited[state.ry as usize][state.y as usize][state.rx as usize][state.x as usize]
+}
+
+fn update_visited(state: &State, visited: &mut Visited) -> bool {
+    let prev = get_visited(state, visited);
+    if prev.1 & state.side == state.side {
+        return false;
     }
+
+    prev.0 += state.cost;
+    prev.1 |= state.side;
+    true
+}
+
+fn get_map_val(state: &State, map: &[Vec<i64>]) -> i64 {
+    (map[state.y as usize][state.x as usize] - 1 + state.ry + state.rx) % 9 + 1
 }
 
 fn run() -> Result<()> {
@@ -60,7 +68,7 @@ fn run() -> Result<()> {
     let mut heap = BinaryHeap::new();
     let mut visited: Visited =
         vec![
-            vec![vec![vec![(-1, -1); width as usize]; MAX_REPEATS as usize + 1]; height as usize];
+            vec![vec![vec![(0, 0); width as usize]; MAX_REPEATS as usize + 1]; height as usize];
             MAX_REPEATS as usize + 1
         ];
 
@@ -70,21 +78,22 @@ fn run() -> Result<()> {
         y: 0,
         rx: 0,
         x: 0,
-        side: 0,
+        side: 1,
     };
     update_visited(&start_state, &mut visited);
     heap.push(start_state);
 
-    let end_state = State {
-        cost: map[(height - 1) as usize][(width - 1) as usize],
+    let mut end_state = State {
+        cost: 0,
         ry: MAX_REPEATS,
         y: height - 1,
         rx: MAX_REPEATS,
         x: width - 1,
-        side: 1,
+        side: 2,
     };
+    end_state.cost = get_map_val(&end_state, &map);
     update_visited(&end_state, &mut visited);
-    //heap.push(end_state);
+    heap.push(end_state);
 
     let dirs: Vec<(i64, i64)> = [-1i64, 0, 1]
         .into_iter()
@@ -92,7 +101,16 @@ fn run() -> Result<()> {
         .filter(|(dy, dx)| (*dy == 0) ^ (*dx == 0))
         .collect();
 
+    let mut its = 0;
     while let Some(cur_state) = heap.pop() {
+        its += 1;
+        let cur_val = get_visited(&cur_state, &mut visited);
+        if cur_val.1 == 3 {
+            println!("Its: {}", its);
+            println!("{}", cur_val.0 - get_map_val(&cur_state, &map));
+            return Ok(());
+        }
+
         for (dy, dx) in dirs.iter() {
             let mut next_state = State {
                 cost: cur_state.cost,
@@ -125,20 +143,26 @@ fn run() -> Result<()> {
                 continue;
             }
 
-            let val = (map[next_state.y as usize][next_state.x as usize] - 1
-                + next_state.ry
-                + next_state.rx)
-                % 9
-                + 1;
-            next_state.cost += val;
-
-            if let Some((prev_cost, prev_side)) = update_visited(&next_state, &mut visited) {
-                if prev_side != next_state.side {
-                    println!("{}", prev_cost + cur_state.cost);
-                    return Ok(());
-                }
+            next_state.cost += get_map_val(&next_state, &map);
+            if !update_visited(&next_state, &mut visited) {
                 continue;
             }
+
+            //println!();
+            //println!("#####################");
+            //for ry in 0..MAX_REPEATS + 1 {
+            //    for y in 0..height {
+            //        for rx in 0..MAX_REPEATS + 1 {
+            //            for x in 0..width {
+            //                print!(
+            //                    "{:02} ",
+            //                    visited[ry as usize][y as usize][rx as usize][x as usize].0
+            //                );
+            //            }
+            //        }
+            //        println!();
+            //    }
+            //}
 
             heap.push(next_state);
         }
