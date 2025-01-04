@@ -1,19 +1,22 @@
+use ahash::AHashMap;
 use anyhow::{ensure, Context, Ok, Result};
 use itertools::Itertools;
 use std::cmp::Ordering;
+use std::collections::hash_map::Entry;
 use std::collections::BinaryHeap;
 use std::io::{self, BufRead};
 use std::thread;
 
-const MAX_REPEATS: usize = 4;
+const MAX_REPEATS: i64 = 4;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 struct State {
     cost: i64,
-    ry: usize,
-    y: usize,
-    rx: usize,
-    x: usize,
+    ry: i64,
+    y: i64,
+    rx: i64,
+    x: i64,
+    side: u8,
 }
 
 impl Ord for State {
@@ -27,8 +30,21 @@ impl PartialOrd for State {
     }
 }
 
+fn update_visited(
+    state: &State,
+    visited: &mut AHashMap<(i64, i64, i64, i64), (i64, u8)>,
+) -> Option<(i64, u8)> {
+    let entry = visited.entry((state.ry, state.y, state.rx, state.x));
+    if let Entry::Occupied(prev) = entry {
+        Some(*prev.get())
+    } else {
+        entry.or_insert((state.cost, state.side));
+        None
+    }
+}
+
 fn run() -> Result<()> {
-    let init_map = io::stdin()
+    let map = io::stdin()
         .lock()
         .lines()
         .map(|l| Ok(l?.trim().to_owned()))
@@ -41,84 +57,89 @@ fn run() -> Result<()> {
             })
         })
         .collect::<Result<Vec<Vec<i64>>>>()?;
-    let (height, width) = (init_map.len(), init_map[0].len());
-
-    let mut map: Vec<Vec<Vec<Vec<i64>>>> = vec![];
-    for ry in 0..MAX_REPEATS + 1 {
-        map.push(Vec::default());
-        for (y, row) in init_map.iter().enumerate() {
-            map[ry].push(Vec::default());
-            for rx in 0..MAX_REPEATS + 1 {
-                map[ry][y].push(Vec::default());
-                for cell in row.iter() {
-                    map[ry][y][rx].push((cell - 1 + (ry as i64) + (rx as i64)) % 9 + 1);
-                }
-            }
-        }
-    }
+    let (height, width) = (map.len() as i64, map[0].len() as i64);
 
     let mut heap = BinaryHeap::new();
-    heap.push(State {
+    let mut visited: AHashMap<(i64, i64, i64, i64), (i64, u8)> =
+        AHashMap::with_capacity((height * width * MAX_REPEATS) as usize);
+
+    let start_state = State {
         cost: 0,
         ry: 0,
         y: 0,
         rx: 0,
         x: 0,
-    });
-    map[0][0][0][0] = -1;
+        side: 0,
+    };
+    update_visited(&start_state, &mut visited);
+    heap.push(start_state);
+
+    let end_state = State {
+        cost: map[(height - 1) as usize][(width - 1) as usize],
+        ry: MAX_REPEATS,
+        y: height - 1,
+        rx: MAX_REPEATS,
+        x: width - 1,
+        side: 1,
+    };
+    update_visited(&end_state, &mut visited);
+    //heap.push(end_state);
+
+    let dirs: Vec<(i64, i64)> = [-1i64, 0, 1]
+        .into_iter()
+        .cartesian_product([-1i64, 0, 1])
+        .filter(|(dy, dx)| (*dy == 0) ^ (*dx == 0))
+        .collect();
 
     while let Some(cur_state) = heap.pop() {
-        if (cur_state.ry, cur_state.y, cur_state.rx, cur_state.x)
-            == (MAX_REPEATS, height - 1, MAX_REPEATS, width - 1)
-        {
-            println!("{:?}", cur_state);
-            println!("{}", cur_state.cost);
-            return Ok(());
-        }
+        for (dy, dx) in dirs.iter() {
+            let mut next_state = State {
+                cost: cur_state.cost,
+                ry: cur_state.ry,
+                y: cur_state.y + dy,
+                rx: cur_state.rx,
+                x: cur_state.x + dx,
+                side: cur_state.side,
+            };
 
-        for dy in [-1i64, 0, 1] {
-            for dx in [-1i64, 0, 1] {
-                if !(dy == 0 || dx == 0) {
-                    continue;
-                }
-
-                let (mut nry, ny, mut nrx, nx) = (
-                    cur_state.ry,
-                    (cur_state.y as i64 + dy),
-                    cur_state.rx,
-                    (cur_state.x as i64 + dx),
-                );
-                if ny < 0 || nx < 0 {
-                    continue;
-                }
-                let (mut ny, mut nx) = (ny as usize, nx as usize);
-
-                if ny == height {
-                    ny = 0;
-                    nry += 1;
-                }
-                if nx == width {
-                    nx = 0;
-                    nrx += 1;
-                }
-
-                if nry > MAX_REPEATS || nrx > MAX_REPEATS {
-                    continue;
-                }
-
-                if map[nry][ny][nrx][nx] == -1 {
-                    continue;
-                }
-
-                heap.push(State {
-                    cost: map[nry][ny][nrx][nx] + cur_state.cost,
-                    ry: nry,
-                    y: ny,
-                    rx: nrx,
-                    x: nx,
-                });
-                map[nry][ny][nrx][nx] = -1;
+            if next_state.y == -1 {
+                next_state.y = height - 1;
+                next_state.ry -= 1;
+            } else if next_state.y == height {
+                next_state.y = 0;
+                next_state.ry += 1;
+            } else if next_state.x == -1 {
+                next_state.x = width - 1;
+                next_state.rx -= 1;
+            } else if next_state.x == width {
+                next_state.x = 0;
+                next_state.rx += 1;
             }
+
+            if !(0 <= next_state.ry
+                && next_state.ry <= MAX_REPEATS
+                && 0 <= next_state.rx
+                && next_state.rx <= MAX_REPEATS)
+            {
+                continue;
+            }
+
+            let val = (map[next_state.y as usize][next_state.x as usize] - 1
+                + next_state.ry
+                + next_state.rx)
+                % 9
+                + 1;
+            next_state.cost += val;
+
+            if let Some((prev_cost, prev_side)) = update_visited(&next_state, &mut visited) {
+                if prev_side != next_state.side {
+                    println!("{}", prev_cost + cur_state.cost);
+                    return Ok(());
+                }
+                continue;
+            }
+
+            heap.push(next_state);
         }
     }
 
