@@ -139,7 +139,16 @@ path = "src/d17_1/main.rs"
 name = "d17_2"
 path = "src/d17_2/main.rs"
 
+[[bin]]
+name = "d18_1"
+path = "src/d18_1/main.rs"
+
+[[bin]]
+name = "d18_2"
+path = "src/d18_2/main.rs"
+
 [dependencies]
+rstest = "0.24"
 anyhow = "1.0"
 itertools = "0.13"
 regex = "1.11.1"
