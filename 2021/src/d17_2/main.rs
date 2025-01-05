@@ -56,14 +56,12 @@ fn run() -> Result<()> {
 
             for (time, vys) in ok_vys.iter() {
                 its += 1;
-                let mut sx = (vx * (vx + 1)) / 2;
-                if *time < vx {
-                    sx -= ((vx - time) * ((vx - time) + 1)) / 2
-                }
+                let t = *time.min(&vx);
+                let sx = (vx * (vx + 1)) / 2 - ((vx - t) * ((vx - t) + 1)) / 2;
                 if xmi <= sx && sx <= xma {
                     its += vys.len();
                     hit_ys.extend(vys);
-                } else if *time >= vx || sx > xma {
+                } else if t == vx || sx > xma {
                     break;
                 }
             }
