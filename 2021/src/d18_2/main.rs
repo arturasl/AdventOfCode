@@ -90,28 +90,21 @@ fn split(parsed: &mut Vec<El>) -> bool {
 }
 
 fn explode(parsed: &mut Vec<El>) -> Result<bool> {
-    let mut changed = false;
     let mut depth = 0;
     let mut idx = 0;
-    let orig_len = parsed.len();
-    let mut idx_write_to = 0;
 
-    while idx < orig_len {
+    while idx < parsed.len() {
         match parsed[idx] {
             El::L(lhs)
-                if depth >= 5
-                    && idx + 1 < orig_len
-                    && matches!(parsed[idx + 1], El::L(_))
-                    && !changed =>
+                if depth >= 5 && idx + 1 < parsed.len() && matches!(parsed[idx + 1], El::L(_)) =>
             {
                 let El::L(rhs) = parsed[idx + 1] else {
                     bail!("");
                 };
 
-                ensure!(idx_write_to > 0 && matches!(parsed[idx_write_to - 1], El::Open));
-                idx_write_to -= 1;
-                parsed[idx_write_to] = El::L(0);
-                depth -= 1;
+                ensure!(matches!(parsed[idx - 1], El::Open));
+                ensure!(matches!(parsed[idx + 2], El::Close));
+                parsed.splice(idx - 1..idx + 3, [El::L(0)]);
 
                 for lhs_idx in (0..idx - 1).rev() {
                     if let El::L(prev) = parsed[lhs_idx] {
@@ -119,56 +112,29 @@ fn explode(parsed: &mut Vec<El>) -> Result<bool> {
                         break;
                     }
                 }
-                for rhs_el in parsed.iter_mut().skip(idx + 2) {
+                for rhs_el in parsed.iter_mut().skip(idx) {
                     if let El::L(prev) = rhs_el {
                         *rhs_el = El::L(rhs + *prev);
                         break;
                     }
                 }
 
-                ensure!(idx + 2 < orig_len && matches!(parsed[idx + 2], El::Close));
-                changed = true;
-                idx += 2;
+                return Ok(true);
             }
-            El::Open => {
-                depth += 1;
-                parsed[idx_write_to] = parsed[idx].clone();
-            }
-            El::Close => {
-                depth -= 1;
-                parsed[idx_write_to] = parsed[idx].clone();
-            }
-            _ => {
-                parsed[idx_write_to] = parsed[idx].clone();
-            }
+            El::Open => depth += 1,
+            El::Close => depth -= 1,
+            _ => {}
         }
-        idx_write_to += 1;
         idx += 1
     }
 
     ensure!(depth == 0);
 
-    parsed.resize(idx_write_to, El::Open);
-    Ok(changed)
+    Ok(false)
 }
 
 fn apply_all(parsed: &mut Vec<El>) -> Result<()> {
-    let mut changed = true;
-
-    while changed {
-        changed = false;
-
-        if explode(parsed)? {
-            changed = true;
-            continue;
-        }
-
-        if split(parsed) {
-            changed = true;
-            continue;
-        }
-    }
-
+    while explode(parsed)? || split(parsed) {}
     Ok(())
 }
 
@@ -181,10 +147,7 @@ fn cal_magnituted_int(parsed: &[El], idx: &mut usize) -> Result<i64> {
         return Ok(n);
     }
 
-    ensure!(
-        matches!(parsed[*idx], El::Open),
-        format!("parsed[{}] = {:?}", idx, parsed[*idx])
-    );
+    ensure!(matches!(parsed[*idx], El::Open));
     *idx += 1;
     let lhs = cal_magnituted_int(parsed, idx)?;
     let rhs = cal_magnituted_int(parsed, idx)?;
@@ -259,7 +222,7 @@ fn main() -> Result<()> {
 #[case("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]", "[[3,[2,[8,0]]],[9,[5,[7,0]]]]")]
 fn explode_test(#[case] inp: &str, #[case] exp: &str) {
     let mut parsed = parse(&inp.chars().collect::<Vec<char>>()).unwrap();
-    explode(&mut parsed);
+    let _ = explode(&mut parsed);
     assert_eq!(exp, to_str(&parsed));
 }
 

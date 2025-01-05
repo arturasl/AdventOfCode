@@ -33,5 +33,5 @@ cargo d16_2, elapsed_sec: 0.00s, result: 1549026292886
 cargo d17_1, elapsed_sec: 0.00s, result: 25200
 cargo d17_2, elapsed_sec: 0.00s, result: 3012
 cargo d18_1, elapsed_sec: 0.00s, result: 3524
-cargo d18_2, elapsed_sec: 0.02s, result: 4656
+cargo d18_2, elapsed_sec: 0.01s, result: 4656
 Above 1s: 0
