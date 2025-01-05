@@ -3,7 +3,6 @@ use anyhow::{Context, Ok, Result};
 use regex::Regex;
 use std::collections::BTreeMap;
 use std::io::{self, BufRead};
-use std::ops::Bound::{Included, Unbounded};
 use std::thread;
 
 fn run() -> Result<()> {

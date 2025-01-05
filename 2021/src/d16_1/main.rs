@@ -4,7 +4,7 @@ use std::thread;
 
 #[derive(Debug)]
 enum Data {
-    Literal(i64),
+    Literal,
     Other(Vec<Packet>),
 }
 
@@ -12,7 +12,6 @@ enum Data {
 struct Packet {
     len: usize,
     version: i64,
-    type_id: i64,
     data: Data,
 }
 
@@ -32,17 +31,15 @@ fn parse(bits: &[u8]) -> Result<Packet> {
     start += 3;
 
     let data = if type_id == 4 {
-        let mut collected: Vec<u8> = Vec::new();
         loop {
             let first_bit = bits[start];
-            collected.extend(&bits[start + 1..start + 5]);
             start += 5;
             if first_bit == 0 {
                 break;
             }
         }
 
-        Data::Literal(to_num(&collected))
+        Data::Literal
     } else {
         let first_bit = bits[start];
         start += 1;
@@ -77,7 +74,6 @@ fn parse(bits: &[u8]) -> Result<Packet> {
     Ok(Packet {
         len: start,
         version,
-        type_id,
         data,
     })
 }
@@ -85,7 +81,7 @@ fn parse(bits: &[u8]) -> Result<Packet> {
 fn sum_version_numbesr(packet: &Packet) -> i64 {
     let mut result: i64 = packet.version;
     match &packet.data {
-        Data::Literal(..) => {}
+        Data::Literal => {}
         Data::Other(o) => {
             for other_packet in o {
                 result += sum_version_numbesr(other_packet);

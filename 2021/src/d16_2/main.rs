@@ -11,7 +11,6 @@ enum Data {
 #[derive(Debug)]
 struct Packet {
     len: usize,
-    version: i64,
     type_id: i64,
     data: Data,
 }
@@ -26,7 +25,6 @@ fn to_num(bits: &[u8]) -> i64 {
 
 fn parse(bits: &[u8]) -> Result<Packet> {
     let mut start: usize = 0;
-    let version = to_num(&bits[start..start + 3]);
     start += 3;
     let type_id = to_num(&bits[start..start + 3]);
     start += 3;
@@ -76,7 +74,6 @@ fn parse(bits: &[u8]) -> Result<Packet> {
 
     Ok(Packet {
         len: start,
-        version,
         type_id,
         data,
     })
