@@ -73,24 +73,20 @@ fn to_str(parsed: &[El]) -> String {
     result
 }
 
-fn split(parsed: &[El]) -> (bool, Vec<El>) {
-    let mut result: Vec<El> = Vec::with_capacity(parsed.len() + 10);
-    let mut changed = false;
-
-    for p in parsed {
-        match p {
-            El::L(n) if *n >= 10 && !changed => {
-                result.push(El::Open);
-                result.push(El::L(*n / 2));
-                result.push(El::L(*n / 2 + *n % 2));
-                result.push(El::Close);
-                changed = true;
+fn split(parsed: &mut Vec<El>) -> bool {
+    for idx in 0..parsed.len() {
+        if let El::L(n) = parsed[idx] {
+            if n >= 10 {
+                parsed.splice(
+                    idx..idx + 1,
+                    [El::Open, El::L(n / 2), El::L(n / 2 + n % 2), El::Close],
+                );
+                return true;
             }
-            _ => result.push(p.clone()),
         }
     }
 
-    (changed, result)
+    false
 }
 
 fn explode(parsed: &mut Vec<El>) -> Result<bool> {
@@ -123,9 +119,9 @@ fn explode(parsed: &mut Vec<El>) -> Result<bool> {
                         break;
                     }
                 }
-                for rhs_idx in idx + 2..parsed.len() {
-                    if let El::L(prev) = parsed[rhs_idx] {
-                        parsed[rhs_idx] = El::L(rhs + prev);
+                for rhs_el in parsed.iter_mut().skip(idx + 2) {
+                    if let El::L(prev) = rhs_el {
+                        *rhs_el = El::L(rhs + *prev);
                         break;
                     }
                 }
@@ -156,28 +152,24 @@ fn explode(parsed: &mut Vec<El>) -> Result<bool> {
     Ok(changed)
 }
 
-fn apply_all(parsed: &[El]) -> Result<Vec<El>> {
+fn apply_all(parsed: &mut Vec<El>) -> Result<()> {
     let mut changed = true;
-    let mut result = parsed.to_vec();
 
     while changed {
         changed = false;
 
-        let after_explosion = explode(&mut result)?;
-        if after_explosion {
+        if explode(parsed)? {
             changed = true;
             continue;
         }
 
-        let after_split = split(&result);
-        if after_split.0 {
+        if split(parsed) {
             changed = true;
-            result = after_split.1;
             continue;
         }
     }
 
-    Ok(result)
+    Ok(())
 }
 
 fn cal_magnituted_int(parsed: &[El], idx: &mut usize) -> Result<i64> {
@@ -226,17 +218,17 @@ fn run() -> Result<()> {
                 continue;
             }
 
-            let mut num: Vec<El> = Vec::with_capacity(numbers[i].len() + numbers[j].len() + 2);
+            let mut num: Vec<El> = Vec::with_capacity(numbers[i].len() + numbers[j].len() + 100);
             num.push(El::Open);
             num.extend(numbers[i].clone());
             num.extend(numbers[j].clone());
             num.push(El::Close);
 
-            let result = apply_all(&num)?;
-            let mag = cal_magnituted(&result)?;
+            apply_all(&mut num)?;
+            let mag = cal_magnituted(&num)?;
             if max_mag < mag {
                 max_mag = mag;
-                max_num = result;
+                max_num = num;
             }
         }
     }
@@ -271,67 +263,67 @@ fn explode_test(#[case] inp: &str, #[case] exp: &str) {
     assert_eq!(exp, to_str(&parsed));
 }
 
-//#[rstest]
-//#[case("", "")]
-//#[case(
-//    "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]",
-//    "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
-//)]
-//#[case(
-//    "[[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]",
-//    "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"
-//)]
-//#[case(
-//    "[[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]],[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]]",
-//    "[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"
-//)]
-//#[case(
-//    "[[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]],[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]]",
-//    "[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"
-//)]
-//#[case(
-//    "[[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]],[7,[5,[[3,8],[1,4]]]]]",
-//    "[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]"
-//)]
-//#[case(
-//    "[[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]],[[2,[2,2]],[8,[8,1]]]]",
-//    "[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]"
-//)]
-//#[case(
-//    "[[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]],[2,9]]",
-//    "[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]"
-//)]
-//#[case(
-//    "[[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]],[1,[[[9,3],9],[[9,0],[0,7]]]]]",
-//    "[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]"
-//)]
-//#[case(
-//    "[[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]],[[[5,[7,4]],7],1]]",
-//    "[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]"
-//)]
-//#[case(
-//    "[[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]],[[[[4,2],2],6],[8,7]]]",
-//    "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"
-//)]
-//fn apply_all_test(#[case] inp: &str, #[case] exp: &str) {
-//    let parsed = parse(&inp.chars().collect::<Vec<char>>()).unwrap();
-//    let result = apply_all(&parsed).unwrap();
-//    assert_eq!(exp, to_str(&result));
-//}
+#[rstest]
+#[case("", "")]
+#[case(
+    "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]",
+    "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
+)]
+#[case(
+    "[[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]",
+    "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"
+)]
+#[case(
+    "[[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]],[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]]",
+    "[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"
+)]
+#[case(
+    "[[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]],[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]]",
+    "[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"
+)]
+#[case(
+    "[[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]],[7,[5,[[3,8],[1,4]]]]]",
+    "[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]]"
+)]
+#[case(
+    "[[[[[7,7],[7,8]],[[9,5],[8,7]]],[[[6,8],[0,8]],[[9,9],[9,0]]]],[[2,[2,2]],[8,[8,1]]]]",
+    "[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]]"
+)]
+#[case(
+    "[[[[[6,6],[6,6]],[[6,0],[6,7]]],[[[7,7],[8,9]],[8,[8,1]]]],[2,9]]",
+    "[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]]"
+)]
+#[case(
+    "[[[[[6,6],[7,7]],[[0,7],[7,7]]],[[[5,5],[5,6]],9]],[1,[[[9,3],9],[[9,0],[0,7]]]]]",
+    "[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]]"
+)]
+#[case(
+    "[[[[[7,8],[6,7]],[[6,8],[0,8]]],[[[7,7],[5,0]],[[5,5],[5,6]]]],[[[5,[7,4]],7],1]]",
+    "[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]]"
+)]
+#[case(
+    "[[[[[7,7],[7,7]],[[8,7],[8,7]]],[[[7,0],[7,7]],9]],[[[[4,2],2],6],[8,7]]]",
+    "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"
+)]
+fn apply_all_test(#[case] inp: &str, #[case] exp: &str) {
+    let mut parsed = parse(&inp.chars().collect::<Vec<char>>()).unwrap();
+    apply_all(&mut parsed).unwrap();
+    assert_eq!(exp, to_str(&parsed));
+}
 
-//#[rstest]
-//#[case("", 0)]
-//#[case("[9,1]", 29)]
-//#[case("[1,9]", 21)]
-//#[case("[[9,1],[1,9]]", 129)]
-//#[case("[[1,2],[[3,4],5]]", 143)]
-//#[case("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384)]
-//#[case("[[[[1,1],[2,2]],[3,3]],[4,4]]", 445)]
-//#[case("[[[[3,0],[5,3]],[4,4]],[5,5]]", 791)]
-//#[case("[[[[5,0],[7,4]],[5,5]],[6,6]]", 1137)]
-//#[case("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", 3488)]
-//fn cal_magnituted_test(#[case] inp: &str, #[case] exp: i64) {
-//    let parsed = parse(&inp.chars().collect::<Vec<char>>()).unwrap();
-//    let result = cal_magnituted(&parsed).unwrap();
-//    assert_eq!(exp, result);
-//}
+#[rstest]
+#[case("", 0)]
+#[case("[9,1]", 29)]
+#[case("[1,9]", 21)]
+#[case("[[9,1],[1,9]]", 129)]
+#[case("[[1,2],[[3,4],5]]", 143)]
+#[case("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384)]
+#[case("[[[[1,1],[2,2]],[3,3]],[4,4]]", 445)]
+#[case("[[[[3,0],[5,3]],[4,4]],[5,5]]", 791)]
+#[case("[[[[5,0],[7,4]],[5,5]],[6,6]]", 1137)]
+#[case("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", 3488)]
+fn cal_magnituted_test(#[case] inp: &str, #[case] exp: i64) {
+    let parsed = parse(&inp.chars().collect::<Vec<char>>()).unwrap();
+    let result = cal_magnituted(&parsed).unwrap();
+    assert_eq!(exp, result);
+}
