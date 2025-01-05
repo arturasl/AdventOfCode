@@ -26,11 +26,16 @@ fn run() -> Result<()> {
             captures["ymax"].parse::<i64>()?,
         );
 
+        // its: 184'005'423
+        // res: 74'743'399
+        let mut its = 0;
+
         let mut ok_vys: BTreeMap<i64, Vec<i64>> = BTreeMap::new();
         for vy in ymi..ymi.abs() {
             let (mut sy, mut lvy) = (0, vy);
-            let mut time = 0;
+            let mut time = 1;
             while sy >= ymi {
+                its += 1;
                 sy += lvy;
                 lvy -= 1;
                 if ymi <= sy && sy <= yma {
@@ -47,27 +52,26 @@ fn run() -> Result<()> {
         }
 
         for vx in xstart..xma + 1 {
-            let (mut sx, mut lvx) = (0, vx);
-            let mut time = 0;
             let mut hit_ys: AHashSet<i64> = AHashSet::new();
-            while sx <= xma && lvx != 0 {
-                sx += lvx;
-                lvx = (lvx - 1).max(0);
-                if xmi <= sx && sx <= xma {
-                    if lvx == 0 {
-                        for (_, vys) in ok_vys.range((Included(time), Unbounded)) {
-                            hit_ys.extend(vys);
-                        }
-                    } else if let Some(vys) = ok_vys.get(&time) {
-                        hit_ys.extend(vys);
-                    }
+
+            for (time, vys) in ok_vys.iter() {
+                its += 1;
+                let mut sx = (vx * (vx + 1)) / 2;
+                if *time < vx {
+                    sx -= ((vx - time) * ((vx - time) + 1)) / 2
                 }
-                time += 1;
+                if xmi <= sx && sx <= xma {
+                    its += vys.len();
+                    hit_ys.extend(vys);
+                } else if *time >= vx || sx > xma {
+                    break;
+                }
             }
 
             result += hit_ys.len();
         }
 
+        println!("its: {}", its);
         println!("{}", result);
     }
     Ok(())
