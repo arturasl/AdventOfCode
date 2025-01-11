@@ -155,6 +155,14 @@ path = "src/d19_1/main.rs"
 name = "d19_2"
 path = "src/d19_2/main.rs"
 
+[[bin]]
+name = "d20_1"
+path = "src/d20_1/main.rs"
+
+[[bin]]
+name = "d20_2"
+path = "src/d20_2/main.rs"
+
 [dependencies]
 rstest = "0.24"
 anyhow = "1.0"
