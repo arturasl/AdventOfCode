@@ -1,7 +1,6 @@
-use ahash::{AHashSet, HashMapExt};
+use ahash::AHashSet;
 use anyhow::{bail, ensure, Context, Ok, Result};
 use itertools::Itertools;
-use memoize::memoize;
 use regex::Regex;
 use std::collections::BTreeSet;
 use std::io::{self, BufRead};
@@ -157,58 +156,58 @@ fn find_compatible(lhs: &Scanner, rhs: &Scanner, rots: &[Rot]) -> BTreeSet<Scann
     result
 }
 
-#[memoize(Ignore: scanners, Ignore: rots, CustomHasher: ahash::HashMap)]
-fn find(finished_scanners: BTreeSet<Scanner>, scanners: &[Scanner], rots: &[Rot]) -> bool {
-    let finished_idxes: BTreeSet<usize> = finished_scanners.iter().map(|s| s.idx).collect();
-    println!("{:?}", finished_idxes);
-    if finished_idxes.len() == scanners.len() {
-        let unique_beacons = finished_scanners
-            .iter()
-            .flat_map(|s| s.beacons.clone())
-            .collect::<BTreeSet<Pos>>()
-            .len();
-
-        let max_dist: i64 = finished_scanners
-            .iter()
-            .combinations(2)
-            .map(|c| {
-                (c[0].pos.x - c[1].pos.x).abs()
-                    + (c[0].pos.y - c[1].pos.y).abs()
-                    + (c[0].pos.z - c[1].pos.z).abs()
-            })
-            .max()
-            .unwrap_or(0);
-        println!("{}", max_dist);
-        println!("{}", unique_beacons);
-        return true;
-    }
-
-    for finished_scanner in finished_scanners.iter() {
-        for rhs_scanner in scanners.iter() {
-            if finished_idxes.contains(&rhs_scanner.idx) {
-                continue;
-            }
-
-            for potential_scanner in find_compatible(finished_scanner, rhs_scanner, rots) {
-                let mut new_finished_scanners = finished_scanners.clone();
-                new_finished_scanners.insert(potential_scanner.clone());
-                if find(new_finished_scanners, scanners, rots) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    false
-}
-
 fn run() -> Result<()> {
     let scanners = read_scanners()?;
     let rots = create_rots()?;
 
-    let mut finsihed_scanners: BTreeSet<Scanner> = BTreeSet::new();
-    finsihed_scanners.insert(scanners[0].clone());
-    find(finsihed_scanners, &scanners, &rots);
+    let mut finished_scanners: Vec<Scanner> = Vec::new();
+    let mut unfished_indexes: AHashSet<usize> = (0..scanners.len()).collect();
+
+    finished_scanners.push(scanners[0].clone());
+    unfished_indexes.remove(&0);
+
+    while finished_scanners.len() != scanners.len() {
+        let mut found_scanner: Option<Scanner> = None;
+        for unfinished_idx in unfished_indexes.iter() {
+            if found_scanner.is_some() {
+                break;
+            }
+
+            for finished_scanner in finished_scanners.iter() {
+                let compatible_scanners =
+                    find_compatible(finished_scanner, &scanners[*unfinished_idx], &rots);
+                ensure!(compatible_scanners.len() <= 1);
+                if compatible_scanners.len() == 1 {
+                    ensure!(found_scanner.is_none());
+                    found_scanner = Some(compatible_scanners.first().context("")?.clone());
+                    break;
+                }
+            }
+        }
+
+        ensure!(found_scanner.is_some());
+        finished_scanners.push(found_scanner.context("")?);
+        unfished_indexes.remove(&finished_scanners.last().context("")?.idx);
+    }
+
+    let unique_beacons = finished_scanners
+        .iter()
+        .flat_map(|s| s.beacons.clone())
+        .collect::<BTreeSet<Pos>>()
+        .len();
+
+    let max_dist: i64 = finished_scanners
+        .iter()
+        .combinations(2)
+        .map(|c| {
+            (c[0].pos.x - c[1].pos.x).abs()
+                + (c[0].pos.y - c[1].pos.y).abs()
+                + (c[0].pos.z - c[1].pos.z).abs()
+        })
+        .max()
+        .unwrap_or(0);
+    println!("{}", max_dist);
+    println!("{}", unique_beacons);
 
     Ok(())
 }
