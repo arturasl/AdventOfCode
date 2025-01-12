@@ -6,8 +6,8 @@ cargo d03_1, elapsed_sec: 0.00s, result: 1458194
 cargo d03_2, elapsed_sec: 0.00s, result: 1100010101 * 111000000010 = 2829354
 cargo d04_1, elapsed_sec: 0.00s, result: 41503
 cargo d04_2, elapsed_sec: 0.00s, result: 3178
-cargo d05_1, elapsed_sec: 0.01s, result: 6841
-cargo d05_2, elapsed_sec: 0.01s, result: 19258
+cargo d05_1, elapsed_sec: 0.00s, result: 6841
+cargo d05_2, elapsed_sec: 0.00s, result: 19258
 cargo d06_1, elapsed_sec: 0.00s, result: 380612
 cargo d06_2, elapsed_sec: 0.00s, result: 1710166656900
 cargo d07_1, elapsed_sec: 0.00s, result: 349357
@@ -34,8 +34,10 @@ cargo d17_1, elapsed_sec: 0.00s, result: 25200
 cargo d17_2, elapsed_sec: 0.00s, result: 3012
 cargo d18_1, elapsed_sec: 0.00s, result: 3524
 cargo d18_2, elapsed_sec: 0.01s, result: 4656
-cargo d19_1, elapsed_sec: 36.12s, result: 483
-cargo d19_2, elapsed_sec: 45.96s, result: 14804
+cargo d19_1, elapsed_sec: 41.02s, result: 483
+cargo d19_2, elapsed_sec: 45.20s, result: 14804
 cargo d20_1, elapsed_sec: 0.00s, result: 4968
 cargo d20_2, elapsed_sec: 0.01s, result: 16793
+cargo d21_1, elapsed_sec: 0.00s, result: 752247 = 999 * 753
+cargo d21_2, elapsed_sec: 0.03s, result: 221109915584112
 Above 1s: 2
