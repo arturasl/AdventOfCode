@@ -1,4 +1,4 @@
-use ahash::AHashSet;
+use ahash::{AHashMap, AHashSet};
 use anyhow::{ensure, Context, Ok, Result};
 use itertools::Itertools;
 use std::cmp::Ordering;
@@ -107,8 +107,8 @@ fn find_reachable(
 ) -> Result<Vec<PosWDistance>> {
     let mut visited: AHashSet<Pos> = taken.clone();
     ensure!(visited.contains(start));
-    let mut found: Vec<PosWDistance> = vec![];
-    let mut queue: VecDeque<PosWDistance> = VecDeque::new();
+    let mut found: Vec<PosWDistance> = Vec::with_capacity(map[0].len());
+    let mut queue: VecDeque<PosWDistance> = VecDeque::with_capacity(map[0].len());
     queue.push_back(PosWDistance {
         dist: 0,
         pos: *start,
@@ -191,7 +191,7 @@ fn run() -> Result<()> {
 
     let final_poses = find_final_poses(&map);
 
-    let lizard_costs: BTreeMap<char, i64> = [('A', 1), ('B', 10), ('C', 100), ('D', 1000)]
+    let lizard_costs: AHashMap<char, i64> = [('A', 1), ('B', 10), ('C', 100), ('D', 1000)]
         .into_iter()
         .collect();
 
@@ -206,11 +206,24 @@ fn run() -> Result<()> {
         if visited.contains(&cur_state.lizards) {
             continue;
         }
-        if final_poses == cur_state.lizards {
+        visited.insert(cur_state.lizards.clone());
+
+        let next_room_pos_per_lizzard: AHashMap<char, Pos> = cur_state
+            .lizards
+            .iter()
+            .flat_map(|(lizzard, poses)| {
+                final_poses
+                    .get(lizzard)?
+                    .iter()
+                    .filter(|p| !poses.contains(p))
+                    .max()
+                    .map(|p| (*lizzard, *p))
+            })
+            .collect();
+        if next_room_pos_per_lizzard.is_empty() {
             println!("{}", cur_state.cost);
             break;
         }
-        visited.insert(cur_state.lizards.clone());
 
         let taken: AHashSet<Pos> = cur_state
             .lizards
@@ -219,20 +232,13 @@ fn run() -> Result<()> {
             .collect();
 
         for (lizzard, poses) in cur_state.lizards.iter() {
-            let maybe_next_room_pos: Option<Pos> = final_poses
-                .get(lizzard)
-                .context("")?
-                .clone()
-                .into_iter()
-                .filter(|p| !poses.contains(p))
-                .max();
-            if let Some(next_room_pos) = maybe_next_room_pos {
+            if let Some(next_room_pos) = next_room_pos_per_lizzard.get(lizzard) {
                 for pos in poses {
                     let reachable: Vec<PosWDistance> = find_reachable(pos, &taken, &map)?
                         .into_iter()
                         .filter(|pwd| !is_entrance(&pwd.pos, &map))
                         .filter(|pwd| is_hallway(pos, &map) ^ is_hallway(&pwd.pos, &map))
-                        .filter(|pwd| is_hallway(&pwd.pos, &map) || pwd.pos == next_room_pos)
+                        .filter(|pwd| is_hallway(&pwd.pos, &map) || pwd.pos == *next_room_pos)
                         .collect();
 
                     for pwd in reachable.into_iter() {
