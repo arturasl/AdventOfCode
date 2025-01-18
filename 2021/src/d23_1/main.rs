@@ -1,5 +1,5 @@
 use ahash::{AHashMap, AHashSet};
-use anyhow::{ensure, Context, Ok, Result};
+use anyhow::{Context, Ok, Result};
 use itertools::Itertools;
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
@@ -106,7 +106,6 @@ fn find_reachable(
     map: &[Vec<char>],
 ) -> Result<Vec<PosWDistance>> {
     let mut visited: AHashSet<Pos> = taken.clone();
-    ensure!(visited.contains(start));
     let mut found: Vec<PosWDistance> = Vec::with_capacity(map[0].len());
     let mut queue: VecDeque<PosWDistance> = VecDeque::with_capacity(map[0].len());
     queue.push_back(PosWDistance {
@@ -234,6 +233,9 @@ fn run() -> Result<()> {
         for (lizzard, poses) in cur_state.lizards.iter() {
             if let Some(next_room_pos) = next_room_pos_per_lizzard.get(lizzard) {
                 for pos in poses {
+                    if (pos.y - 1, pos.x) == (next_room_pos.y, next_room_pos.x) {
+                        continue;
+                    }
                     let reachable: Vec<PosWDistance> = find_reachable(pos, &taken, &map)?
                         .into_iter()
                         .filter(|pwd| !is_entrance(&pwd.pos, &map))
