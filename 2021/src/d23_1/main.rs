@@ -1,15 +1,15 @@
 use ahash::{AHashMap, AHashSet};
 use anyhow::{Context, Ok, Result};
+use hashable_map::{HashableMap, HashableSet};
 use itertools::Itertools;
 use std::cmp::Ordering;
-use std::collections::{BTreeMap, BTreeSet};
 use std::collections::{BinaryHeap, VecDeque};
 use std::io::{self, BufRead};
 use std::thread;
 
 const DIRS: [(i64, i64); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
 
-#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone, PartialOrd, Ord)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone, PartialOrd, Ord, Default)]
 struct Pos {
     y: i64,
     x: i64,
@@ -18,7 +18,7 @@ struct Pos {
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct State {
     cost: i64,
-    lizards: BTreeMap<char, BTreeSet<Pos>>,
+    lizards: HashableMap<char, HashableSet<Pos>>,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -85,8 +85,8 @@ fn is_hallway(pos: &Pos, map: &[Vec<char>]) -> bool {
     get(pos, map) == '.' && get(&up, map) == '#'
 }
 
-fn find_lizzards(map: &[Vec<char>]) -> BTreeMap<char, BTreeSet<Pos>> {
-    let mut poses: BTreeMap<char, BTreeSet<Pos>> = BTreeMap::new();
+fn find_lizzards(map: &[Vec<char>]) -> HashableMap<char, HashableSet<Pos>> {
+    let mut poses: HashableMap<char, HashableSet<Pos>> = HashableMap::new();
     for (y, row) in map.iter().enumerate() {
         for (x, col) in row.iter().enumerate() {
             if !['#', '.', ' '].contains(col) {
@@ -140,7 +140,7 @@ fn find_reachable(
     Ok(found)
 }
 
-fn find_final_poses(map: &[Vec<char>]) -> BTreeMap<char, BTreeSet<Pos>> {
+fn find_final_poses(map: &[Vec<char>]) -> HashableMap<char, HashableSet<Pos>> {
     let poses_by_x: Vec<(i64, Pos)> = (0..map.len())
         .cartesian_product(0..map[0].len())
         .map(|(y, x)| Pos {
@@ -152,7 +152,7 @@ fn find_final_poses(map: &[Vec<char>]) -> BTreeMap<char, BTreeSet<Pos>> {
         .sorted_unstable()
         .collect();
 
-    let mut result: BTreeMap<char, BTreeSet<Pos>> = BTreeMap::new();
+    let mut result: HashableMap<char, HashableSet<Pos>> = HashableMap::new();
     let mut cur_ch = b'A' - 1;
     let mut prev_x: i64 = -1;
 
@@ -183,7 +183,7 @@ fn run() -> Result<()> {
 
     let init_poses = find_lizzards(&map);
     for poses in init_poses.values() {
-        for pos in poses {
+        for pos in poses.iter() {
             *get_mut(pos, &mut map) = '.';
         }
     }
@@ -199,7 +199,7 @@ fn run() -> Result<()> {
         cost: 0,
         lizards: init_poses,
     });
-    let mut visited: BTreeSet<BTreeMap<char, BTreeSet<Pos>>> = BTreeSet::new();
+    let mut visited: HashableSet<HashableMap<char, HashableSet<Pos>>> = HashableSet::new();
 
     while let Some(cur_state) = queue.pop() {
         if visited.contains(&cur_state.lizards) {
@@ -227,12 +227,12 @@ fn run() -> Result<()> {
         let taken: AHashSet<Pos> = cur_state
             .lizards
             .values()
-            .flat_map(|posses| posses.clone().into_iter())
+            .flat_map(|posses| posses.iter().copied())
             .collect();
 
         for (lizzard, poses) in cur_state.lizards.iter() {
             if let Some(next_room_pos) = next_room_pos_per_lizzard.get(lizzard) {
-                for pos in poses {
+                for pos in poses.iter() {
                     if (pos.y - 1, pos.x) == (next_room_pos.y, next_room_pos.x) {
                         continue;
                     }
