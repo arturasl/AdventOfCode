@@ -7,6 +7,8 @@ use std::collections::{BinaryHeap, VecDeque};
 use std::io::{self, BufRead};
 use std::thread;
 
+const DIRS: [(i64, i64); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone, PartialOrd, Ord)]
 struct Pos {
     y: i64,
@@ -113,33 +115,26 @@ fn find_reachable(
     });
 
     while let Some(cur) = queue.pop_front() {
-        for dy in -1i64..=1 {
-            for dx in -1i64..=1 {
-                if !(dy == 0 || dx == 0) {
-                    continue;
-                }
+        for (dy, dx) in DIRS {
+            let next = PosWDistance {
+                dist: cur.dist + 1,
+                pos: Pos {
+                    y: cur.pos.y + dy,
+                    x: cur.pos.x + dx,
+                },
+            };
+            let ch = get(&next.pos, map);
 
-                let next = PosWDistance {
-                    dist: cur.dist + 1,
-                    pos: Pos {
-                        y: cur.pos.y + dy,
-                        x: cur.pos.x + dx,
-                    },
-                };
-                let ch = get(&next.pos, map);
-
-                if ['#', ' '].contains(&ch) {
-                    continue;
-                }
-                if visited.contains(&next.pos) {
-                    continue;
-                }
-                ensure!(ch == '.');
-                visited.insert(next.pos);
-
-                found.push(next.clone());
-                queue.push_back(next);
+            if ch != '.' {
+                continue;
             }
+            if visited.contains(&next.pos) {
+                continue;
+            }
+            visited.insert(next.pos);
+
+            found.push(next.clone());
+            queue.push_back(next);
         }
     }
 
