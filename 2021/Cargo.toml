@@ -187,6 +187,14 @@ path = "src/d23_1/main.rs"
 name = "d23_2"
 path = "src/d23_2/main.rs"
 
+[[bin]]
+name = "d24_1"
+path = "src/d24_1/main.rs"
+
+[[bin]]
+name = "d24_2"
+path = "src/d24_2/main.rs"
+
 [dependencies]
 ahash = "0.8"
 anyhow = "1.0"
