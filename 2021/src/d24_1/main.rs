@@ -29,7 +29,7 @@ impl FromStr for Op {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 enum Register {
     X,
     Y,
@@ -84,8 +84,7 @@ struct State {
     reg_vals: AHashMap<Register, i64>,
 }
 
-fn eval(init_state: State, exp_chunk: &ExpChunk) -> Result<Option<State>> {
-    let mut state = init_state.clone();
+fn eval(state: &mut State, exp_chunk: &ExpChunk) -> Result<bool> {
     for exp in exp_chunk.exps.iter() {
         let new_lhs_val: i64 = match state.reg_vals.get(&exp.lhs) {
             None => {
@@ -104,13 +103,13 @@ fn eval(init_state: State, exp_chunk: &ExpChunk) -> Result<Option<State>> {
                     Op::Mul => lhs_val * rhs_val,
                     Op::Div => {
                         if rhs_val == 0 {
-                            return Ok(None);
+                            return Ok(false);
                         }
                         lhs_val / rhs_val
                     }
                     Op::Mod => {
                         if *lhs_val < 0 || rhs_val <= 0 {
-                            return Ok(None);
+                            return Ok(false);
                         }
                         lhs_val % rhs_val
                     }
@@ -119,10 +118,10 @@ fn eval(init_state: State, exp_chunk: &ExpChunk) -> Result<Option<State>> {
             }
         };
 
-        state.reg_vals.insert(exp.lhs.clone(), new_lhs_val);
+        state.reg_vals.insert(exp.lhs, new_lhs_val);
     }
 
-    Ok(Some(state))
+    Ok(true)
 }
 
 #[memoize(Ignore: problem, CustomHasher: ahash::HashMap)]
@@ -131,14 +130,13 @@ fn solve(z: i64, idx: usize, problem: &[ExpChunk]) -> Option<i64> {
         return if z == 0 { Some(0) } else { None };
     }
 
-    let mul = 10i64.checked_pow((problem.len() - idx - 1) as u32)?;
     for w in (1..=9).rev() {
-        let state = State {
+        let mut state = State {
             reg_vals: [(Register::Z, z), (Register::W, w)].into_iter().collect(),
         };
-        if let Some(next_state) = eval(state, &problem[idx]).ok()? {
-            if let Some(res) = solve(*next_state.reg_vals.get(&Register::Z)?, idx + 1, problem) {
-                return Some(w * mul + res);
+        if eval(&mut state, &problem[idx]).ok()? {
+            if let Some(res) = solve(*state.reg_vals.get(&Register::Z)?, idx + 1, problem) {
+                return Some(w * 10i64.checked_pow((problem.len() - idx - 1) as u32)? + res);
             }
         }
     }
