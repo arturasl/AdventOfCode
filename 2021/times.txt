@@ -34,17 +34,17 @@ cargo d17_1, elapsed_sec: 0.00s, result: 25200
 cargo d17_2, elapsed_sec: 0.00s, result: 3012
 cargo d18_1, elapsed_sec: 0.00s, result: 3524
 cargo d18_2, elapsed_sec: 0.01s, result: 4656
-cargo d19_1, elapsed_sec: 28.49s, result: 483
-cargo d19_2, elapsed_sec: 45.18s, result: 14804
+cargo d19_1, elapsed_sec: 32.47s, result: 483
+cargo d19_2, elapsed_sec: 45.12s, result: 14804
 cargo d20_1, elapsed_sec: 0.00s, result: 4968
 cargo d20_2, elapsed_sec: 0.01s, result: 16793
 cargo d21_1, elapsed_sec: 0.00s, result: 752247 = 999 * 753
-cargo d21_2, elapsed_sec: 0.02s, result: 221109915584112
-cargo d22_1, elapsed_sec: 0.21s, result: 545118
-cargo d22_2, elapsed_sec: 0.03s, result: 1227298136842375
-cargo d23_1, elapsed_sec: 0.48s, result: 14346
-cargo d23_2, elapsed_sec: 0.60s, result: 48984
-cargo d24_1, elapsed_sec: 2.50s, result: 95299897999897
-cargo d24_2, elapsed_sec: 9.49s, result: 31111121382151
+cargo d21_2, elapsed_sec: 0.03s, result: 221109915584112
+cargo d22_1, elapsed_sec: 0.22s, result: 545118
+cargo d22_2, elapsed_sec: 0.04s, result: 1227298136842375
+cargo d23_1, elapsed_sec: 0.50s, result: 14346
+cargo d23_2, elapsed_sec: 0.62s, result: 48984
+cargo d24_1, elapsed_sec: 0.46s, result: 95299897999897
+cargo d24_2, elapsed_sec: 1.81s, result: 31111121382151
 cargo d25_1, elapsed_sec: 0.03s, result: 360
-Above 1s: 4
+Above 1s: 3

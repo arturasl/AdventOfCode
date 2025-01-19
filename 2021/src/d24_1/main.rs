@@ -1,4 +1,4 @@
-use ahash::{AHashMap, HashMapExt};
+use ahash::HashMapExt;
 use anyhow::{bail, ensure, Context, Error, Ok, Result};
 use memoize::memoize;
 use std::io::{self, BufRead};
@@ -31,10 +31,10 @@ impl FromStr for Op {
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 enum Register {
-    X,
-    Y,
-    Z,
-    W,
+    X = 0,
+    Y = 1,
+    Z = 2,
+    W = 3,
 }
 
 impl FromStr for Register {
@@ -81,12 +81,12 @@ struct ExpChunk {
 
 #[derive(Debug, Clone)]
 struct State {
-    reg_vals: AHashMap<Register, i64>,
+    reg_vals: [Option<i64>; 4],
 }
 
 fn eval(state: &mut State, exp_chunk: &ExpChunk) -> Result<bool> {
     for exp in exp_chunk.exps.iter() {
-        let new_lhs_val: i64 = match state.reg_vals.get(&exp.lhs) {
+        let new_lhs_val: i64 = match state.reg_vals[exp.lhs as usize] {
             None => {
                 ensure!(exp.op == Op::Mul);
                 ensure!(matches!(exp.rhs, Var::Num(0)));
@@ -94,7 +94,7 @@ fn eval(state: &mut State, exp_chunk: &ExpChunk) -> Result<bool> {
             }
             Some(lhs_val) => {
                 let rhs_val: i64 = match &exp.rhs {
-                    Var::Reg(reg) => *state.reg_vals.get(reg).context("")?,
+                    Var::Reg(reg) => state.reg_vals[*reg as usize].context("")?,
                     Var::Num(num) => *num,
                 };
 
@@ -108,17 +108,17 @@ fn eval(state: &mut State, exp_chunk: &ExpChunk) -> Result<bool> {
                         lhs_val / rhs_val
                     }
                     Op::Mod => {
-                        if *lhs_val < 0 || rhs_val <= 0 {
+                        if lhs_val < 0 || rhs_val <= 0 {
                             return Ok(false);
                         }
                         lhs_val % rhs_val
                     }
-                    Op::Eql => i64::from(*lhs_val == rhs_val),
+                    Op::Eql => i64::from(lhs_val == rhs_val),
                 }
             }
         };
 
-        state.reg_vals.insert(exp.lhs, new_lhs_val);
+        state.reg_vals[exp.lhs as usize] = Some(new_lhs_val);
     }
 
     Ok(true)
@@ -132,10 +132,12 @@ fn solve(z: i64, idx: usize, problem: &[ExpChunk]) -> Option<i64> {
 
     for w in (1..=9).rev() {
         let mut state = State {
-            reg_vals: [(Register::Z, z), (Register::W, w)].into_iter().collect(),
+            reg_vals: [None; 4],
         };
+        state.reg_vals[Register::Z as usize] = Some(z);
+        state.reg_vals[Register::W as usize] = Some(w);
         if eval(&mut state, &problem[idx]).ok()? {
-            if let Some(res) = solve(*state.reg_vals.get(&Register::Z)?, idx + 1, problem) {
+            if let Some(res) = solve(state.reg_vals[Register::Z as usize]?, idx + 1, problem) {
                 return Some(w * 10i64.checked_pow((problem.len() - idx - 1) as u32)? + res);
             }
         }
