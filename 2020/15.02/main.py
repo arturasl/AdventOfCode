@@ -2,7 +2,7 @@ import sys
 
 
 def solve(numbers: list[int], cnt: int) -> int:
-    spoken: dict[int, int] = {}
+    spoken: list[int] = [-1] * cnt
     idx = 0
     while idx < len(numbers) - 1:
         spoken[numbers[idx]] = idx
@@ -11,7 +11,7 @@ def solve(numbers: list[int], cnt: int) -> int:
     next_num = numbers[idx]
 
     while idx < cnt - 1:
-        cur_num = idx - spoken.get(next_num, idx)
+        cur_num = idx - (idx if spoken[next_num] == -1 else spoken[next_num])
         spoken[next_num] = idx
         next_num = cur_num
         idx += 1
@@ -20,7 +20,7 @@ def solve(numbers: list[int], cnt: int) -> int:
 
 
 def main():
-    print(solve([int(x) for x in sys.stdin.readline().strip().split(",")], 2020))
+    print(solve([int(x) for x in sys.stdin.readline().strip().split(",")], 30000000))
 
 
 def test_0():
@@ -76,7 +76,7 @@ def test_6_big():
 
 
 def test_7_big():
-    assert solve([1, 0, 16, 5, 17, 4], 30000000) == 362
+    assert solve([1, 0, 16, 5, 17, 4], 30000000) == 573522
 
 
 if __name__ == "__main__":
