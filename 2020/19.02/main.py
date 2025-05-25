@@ -42,13 +42,13 @@ def main():
         line for line in [line.strip() for line in sys.stdin] if line
     ]
 
+    cache: dict[int, str] = {}
+    cache[8] = to_regex(rules, 42, cache) + "+"
+    cache[11] = to_regex(rules, 42, cache) + "{X}" + to_regex(rules, 31, cache) + "{X}"
+    txt_regex = "^" + to_regex(rules, 0, cache) + "$"
+
     for reps in range(1, max(len(c) for c in checks if c) // 2 + 1):
-        cache: dict[int, str] = {}
-        cache[8] = to_regex(rules, 42, cache) + "+"
-        cache[11] = (
-            to_regex(rules, 42, cache) * reps + to_regex(rules, 31, cache) * reps
-        )
-        re_rules = re.compile("^" + to_regex(rules, 0, cache) + "$")
+        re_rules = re.compile(txt_regex.replace("{X}", f"{{{reps}}}"))
 
         for i, c in enumerate(checks):
             if not c or not re_rules.match(c):
