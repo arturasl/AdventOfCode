@@ -14,10 +14,15 @@ def to_regex(
             to_regex(rules, p, cache) if isinstance(p, int) else p for p in part
         )
 
-    cache[rule_id] = (
-        "(" + "|".join(part_to_regex(part) for part in rules[rule_id]) + ")"
-    )
-    return cache[rule_id]
+    parts = rules[rule_id]
+    if len(parts) == 1 and len(parts[0]) == 1:
+        result = str(parts[0][0])
+        assert len(result) == 1
+    else:
+        result = "(" + "|".join(part_to_regex(part) for part in parts) + ")"
+    cache[rule_id] = result
+
+    return result
 
 
 def main():
