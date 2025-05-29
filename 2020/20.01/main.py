@@ -7,6 +7,8 @@ import sys
 from dataclasses import dataclass
 from typing import override
 
+TILE_DIM = 10
+
 
 @dataclass()
 class Tile:
@@ -41,7 +43,14 @@ class Tile:
             tiles.append(tiles[i].h_flip())
         for i in range(4):
             tiles.append(tiles[i].v_flip())
-        return tiles
+
+        def cut_middle(tile: Tile) -> Tile:
+            for y in range(1, len(tile.plane) - 1):
+                for x in range(1, len(tile.plane[y]) - 1):
+                    tile.plane[y][x] = False
+            return tile
+
+        return list({str(cut_middle(tile)): tile for tile in tiles}.values())
 
     @override
     def __str__(self: Tile) -> str:
@@ -77,15 +86,34 @@ def read_tiles() -> list[Tile]:
 
     if current_tile:
         assert current_tile.plane
+        assert len(current_tile.plane) == TILE_DIM
         tiles.append(current_tile)
 
     return tiles
+
+
+def does_fit(grid: list[list[Tile | None]], y: int, x: int, tile: Tile) -> bool:
+    if x != 0:
+        lhs = grid[y][x - 1]
+        assert lhs
+        for rowidx, row in enumerate(lhs.plane):
+            if row[-1] != tile.plane[rowidx][0]:
+                return False
+
+    if y != 0:
+        above = grid[y - 1][x]
+        assert above
+        if above.plane[-1] != tile.plane[0]:
+            return False
+
+    return True
 
 
 def fit(
     grid: list[list[Tile | None]], y: int, x: int, possible_tiles: list[list[Tile]]
 ) -> int:
     r = 1
+
     if y == len(grid):
         assert grid[0][0] and grid[0][-1] and grid[-1][0] and grid[-1][-1]
         print(grid[0][0].name * grid[0][-1].name * grid[-1][0].name * grid[-1][-1].name)
@@ -97,20 +125,7 @@ def fit(
         possible_tiles[i] = []
 
         for tile in tile_set:
-            # Fits?
-            fits = True
-            if x != 0:
-                lhs = grid[y][x - 1]
-                assert lhs
-                for rowidx, row in enumerate(lhs.plane):
-                    fits = fits and row[-1] == tile.plane[rowidx][0]
-
-            if y != 0:
-                above = grid[y - 1][x]
-                assert above
-                fits = fits and above.plane[-1] == tile.plane[0]
-
-            if not fits:
+            if not does_fit(grid, y, x, tile):
                 continue
 
             grid[y][x] = tile
@@ -137,7 +152,7 @@ def main():
     width = math.isqrt(len(tiles))
     assert width**2 == len(tiles)
     grid: list[list[Tile | None]] = [[None for _ in range(width)] for _ in range(width)]
-    print(fit(grid, 0, 0, possible_tiles))
+    print(f"Num iterations: {fit(grid, 0, 0, possible_tiles)}", file=sys.stderr)
 
 
 if __name__ == "__main__":
