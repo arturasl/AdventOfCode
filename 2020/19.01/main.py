@@ -1,12 +1,19 @@
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Hashable
 
 from cachetools import cached
 from cachetools.keys import hashkey
 
 
-@cached(cache={}, key=lambda _, rule_id: hashkey(rule_id))
+def to_regex_hash(
+    _: dict[int, list[list[int | str]]], rule_id: int
+) -> tuple[Hashable, ...]:
+    return hashkey(rule_id)
+
+
+@cached(cache={}, key=to_regex_hash)
 def to_regex(rules: dict[int, list[list[int | str]]], rule_id: int) -> str:
     def part_to_regex(part: list[int | str]) -> str:
         return "".join(to_regex(rules, p) if isinstance(p, int) else p for p in part)

@@ -3,7 +3,7 @@ from collections import defaultdict
 
 
 def main():
-    nums = []
+    nums: list[int] = []
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -13,7 +13,7 @@ def main():
     nums.append(0)
     nums.append(max(nums) + 3)
     nums = sorted(nums)
-    diffs = defaultdict(int)
+    diffs: dict[int, int] = defaultdict(int)
     for i in range(1, len(nums)):
         diffs[nums[i] - nums[i - 1]] += 1
 

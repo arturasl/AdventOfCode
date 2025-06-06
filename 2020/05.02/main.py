@@ -2,7 +2,7 @@ import sys
 
 
 def main():
-    seats = []
+    seats: list[int] = []
     for line in sys.stdin:
         line = line.strip()
         assert len(line) == 10
@@ -20,7 +20,7 @@ def main():
         seats.append(row * 8 + col)
 
     seats = sorted(seats)
-    identified = []
+    identified: list[int] = []
     for i in range(1, len(seats) - 1):
         if seats[i] - 1 != seats[i - 1]:
             identified.append(seats[i] - 1)

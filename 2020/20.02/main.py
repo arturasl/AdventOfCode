@@ -126,7 +126,7 @@ def does_fit(grid: list[list[Tile | None]], y: int, x: int, tile: Tile) -> bool:
     return True
 
 
-def find_dragons(grid: list[list[Tile | None]]):
+def create_str_grid(grid: list[list[Tile | None]]) -> list[list[str]]:
     str_grid = [
         ["x" for _ in range(len(grid) * (TILE_DIM - 2))]
         for _ in range(len(grid) * (TILE_DIM - 2))
@@ -141,25 +141,38 @@ def find_dragons(grid: list[list[Tile | None]]):
                         gx * (TILE_DIM - 2) + tx - 1
                     ] = "#" if tile.plane[ty][tx] else "."
 
+    return str_grid
+
+
+def find_dragons(grid: list[list[Tile | None]]):
+    str_grid = create_str_grid(grid)
+
     pat = ["                  # ", "#    ##    ##    ###", " #  #  #  #  #  #   "]
+    pat_filled_pos = [
+        (py, px)
+        for py, prow in enumerate(pat)
+        for px, pchar in enumerate(prow)
+        if pchar == "#"
+    ]
 
     for orien in all_orientations(str_grid):
         num_found = 0
         for y, orow in enumerate(orien):
             for x, _ in enumerate(orien[y]):
-                ok = True
-                for py, prow in enumerate(pat):
-                    for px, pchar in enumerate(prow):
-                        ok = ok and y + py < len(orien)
-                        ok = ok and x + px < len(orow)
-                        ok = ok and (pchar != "#" or orien[y + py][x + px] == "#")
+                ok = all(
+                    y + py < len(orien)
+                    and x + px < len(orow)
+                    and orien[y + py][x + px] == "#"
+                    for py, px in pat_filled_pos
+                )
 
-                if ok:
-                    for py, prow in enumerate(pat):
-                        for px, pchar in enumerate(prow):
-                            if pchar == "#":
-                                orien[y + py][x + px] = "O"
-                num_found += ok
+                if not ok:
+                    continue
+
+                for py, px in pat_filled_pos:
+                    orien[y + py][x + px] = "O"
+                num_found += 1
+
         if num_found:
             print("\n".join("".join(row) for row in orien))
             print(sum(sum(c == "#" for c in row) for row in orien))

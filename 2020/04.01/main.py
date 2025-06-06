@@ -1,6 +1,6 @@
 import sys
 
-REQUIRED_FIELDS = frozenset(
+REQUIRED_FIELDS = set(
     [
         "byr",
         "iyr",
@@ -16,13 +16,13 @@ REQUIRED_FIELDS = frozenset(
 def main():
     num_valid = 0
     for entry in "\n".join(line.strip() for line in sys.stdin).split("\n\n"):
-        fields = set([])
+        fields: set[str] = set([])
         for kv in entry.split():
             assert kv
             parts = kv.split(":")
             assert len(parts) == 2
             fields.add(parts[0])
-        num_valid += fields & REQUIRED_FIELDS == REQUIRED_FIELDS
+        num_valid += (fields & REQUIRED_FIELDS) == REQUIRED_FIELDS
     print(num_valid)
 
 

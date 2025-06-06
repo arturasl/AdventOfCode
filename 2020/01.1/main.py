@@ -3,12 +3,12 @@ from collections import defaultdict
 
 
 def main():
-    num_to_cnt = defaultdict(int)
+    num_to_cnt: dict[int, int] = defaultdict(int)
     for line in sys.stdin:
         line = line.strip()
         num_to_cnt[int(line)] += 1
 
-    result = set([])
+    result: set[int] = set([])
     for k in num_to_cnt.keys():
         search_for = 2020 - k
         min_cnt = 2 if search_for == k else 1

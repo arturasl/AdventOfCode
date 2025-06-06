@@ -9,7 +9,7 @@ class Op(Enum):
     JMP = 2
 
     @staticmethod
-    def from_str(s):
+    def from_str(s: str):
         return {"nop": Op.NOP, "acc": Op.ACC, "jmp": Op.JMP}[s]
 
 
@@ -20,7 +20,7 @@ class Instruction:
 
 
 def main():
-    instructions = []
+    instructions: list[Instruction] = []
     for line in sys.stdin:
         line = line.strip()
         op, amount = line.split()
@@ -28,7 +28,7 @@ def main():
 
     idx = 0
     accumualtor = 0
-    executed_idxes = set()
+    executed_idxes: set[int] = set()
     while True:
         if idx in executed_idxes:
             print(accumualtor)

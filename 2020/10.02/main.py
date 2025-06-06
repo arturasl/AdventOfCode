@@ -1,10 +1,15 @@
 import sys
+from collections.abc import Hashable
 
 from cachetools import cached
 from cachetools.keys import hashkey
 
 
-@cached(cache={}, key=lambda _, idx, prev_val: hashkey((idx, prev_val)))
+def count_cache(_: list[int], idx: int, prev_val: int) -> tuple[Hashable, ...]:
+    return hashkey((idx, prev_val))
+
+
+@cached(cache={}, key=count_cache)
 def count(nums: list[int], idx: int, prev_val: int):
     if len(nums) == idx:
         return 1

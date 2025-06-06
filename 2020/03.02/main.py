@@ -2,9 +2,9 @@ import sys
 
 
 def main():
-    map = []
+    grid: list[str] = []
     for line in sys.stdin:
-        map.append(line.strip())
+        grid.append(line.strip())
 
     result = 1
     for dy, dx in [(1, 1), (1, 3), (1, 5), (1, 7), (2, 1)]:
@@ -12,9 +12,9 @@ def main():
         num_trees = 0
         while True:
             pos = (pos[0] + dy, pos[1] + dx)
-            if pos[0] >= len(map):
+            if pos[0] >= len(grid):
                 break
-            line = map[pos[0]]
+            line = grid[pos[0]]
             ch = line[pos[1] % len(line)]
             num_trees += ch == "#"
         result *= num_trees

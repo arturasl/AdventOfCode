@@ -9,7 +9,7 @@ class Op(Enum):
     JMP = 2
 
     @staticmethod
-    def from_str(s):
+    def from_str(s: str):
         return {"nop": Op.NOP, "acc": Op.ACC, "jmp": Op.JMP}[s]
 
 
@@ -19,10 +19,10 @@ class Instruction:
     amount: int
 
 
-def execute(instructions):
+def execute(instructions: list[Instruction]):
     idx = 0
     accumualtor = 0
-    executed_idxes = set()
+    executed_idxes: set[int] = set()
     while True:
         if idx in executed_idxes:
             return None
@@ -43,15 +43,13 @@ def execute(instructions):
 
 
 def main():
-    instructions = []
+    instructions: list[Instruction] = []
     for line in sys.stdin:
         line = line.strip()
         op, amount = line.split()
         instructions.append(Instruction(Op.from_str(op), int(amount)))
 
-    for idx in range(len(instructions)):
-        old = instructions[idx]
-
+    for idx, old in enumerate(instructions):
         instructions[idx] = Instruction(
             {Op.NOP: Op.JMP, Op.ACC: Op.ACC, Op.JMP: Op.NOP}[old.op], old.amount
         )

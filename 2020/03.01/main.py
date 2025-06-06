@@ -2,17 +2,17 @@ import sys
 
 
 def main():
-    map = []
+    grid: list[str] = []
     for line in sys.stdin:
-        map.append(line.strip())
+        grid.append(line.strip())
 
     pos = (0, 0)
     num_trees = 0
     while True:
         pos = (pos[0] + 1, pos[1] + 3)
-        if pos[0] >= len(map):
+        if pos[0] >= len(grid):
             break
-        line = map[pos[0]]
+        line = grid[pos[0]]
         ch = line[pos[1] % len(line)]
         num_trees += ch == "#"
 

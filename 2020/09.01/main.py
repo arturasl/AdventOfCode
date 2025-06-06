@@ -5,8 +5,8 @@ PREMABLE_SIZE = 25
 
 
 def main():
-    previous = deque()
-    previous_mp = defaultdict(int)
+    previous: deque[int] = deque()
+    previous_mp: dict[int, int] = defaultdict(int)
     for line in sys.stdin:
         line = line.strip()
         if not line:

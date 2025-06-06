@@ -3,6 +3,29 @@ import sys
 DIRS = [(dy, dx) for dy in [-1, 0, 1] for dx in [-1, 0, 1] if (dy, dx) != (0, 0)]
 
 
+def find_visible(
+    around: list[tuple[int, int]], mp_cur: list[list[str]]
+) -> list[list[list[str]]]:
+    visible: list[list[list[str]]] = [[[] for _ in row] for row in mp_cur]
+
+    for y, x in around:
+        for dy, dx in DIRS:
+            cy, cx = y, x
+            cur_ch = None
+
+            while True:
+                cy += dy
+                cx += dx
+                if not (1 <= cy < len(mp_cur) - 1 and 1 <= cx < len(mp_cur[cy]) - 1):
+                    break
+                if cur_ch:
+                    visible[cy][cx].append(cur_ch)
+                if mp_cur[cy][cx] != ".":
+                    cur_ch = mp_cur[cy][cx]
+
+    return visible
+
+
 def main():
     mp_cur = [["."] + list(line.strip()) + ["."] for line in sys.stdin if line]
     empty_row = ["." for _ in range(len(mp_cur[0]))]
@@ -16,32 +39,10 @@ def main():
     around += [(y, 0) for y in range(1, len(mp_cur) - 1)]
     around += [(y, len(mp_cur[y]) - 1) for y in range(1, len(mp_cur) - 1)]
 
-    visible: list[list[list[str]]] = [[[] for _ in row] for row in mp_cur]
-
     changed = True
     while changed:
-        for row in visible:
-            for col in row:
-                col.clear()
-
         changed = False
-
-        for y, x in around:
-            for dy, dx in DIRS:
-                cy, cx = y, x
-                cur_ch = None
-
-                while True:
-                    cy += dy
-                    cx += dx
-                    if not (
-                        1 <= cy < len(mp_cur) - 1 and 1 <= cx < len(mp_cur[cy]) - 1
-                    ):
-                        break
-                    if cur_ch:
-                        visible[cy][cx].append(cur_ch)
-                    if mp_cur[cy][cx] != ".":
-                        cur_ch = mp_cur[cy][cx]
+        visible = find_visible(around, mp_cur)
 
         for y in range(1, len(mp_cur) - 1):
             for x in range(1, len(mp_cur[y]) - 1):

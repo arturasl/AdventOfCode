@@ -4,9 +4,9 @@ from collections import defaultdict, deque
 PREMABLE_SIZE = 25
 
 
-def fidn_wrong_num(nums):
-    previous = deque()
-    previous_mp = defaultdict(int)
+def fidn_wrong_num(nums: list[int]) -> int | None:
+    previous: deque[int] = deque()
+    previous_mp: dict[int, int] = defaultdict(int)
     for num in nums:
         if len(previous) == PREMABLE_SIZE:
             if not any(
@@ -22,13 +22,15 @@ def fidn_wrong_num(nums):
         previous.append(num)
         previous_mp[num] += 1
 
+    return None
 
-def sum_between_inc(a, b, acc):
+
+def sum_between_inc(a: int, b: int, acc: list[int]):
     return acc[b + 1] - acc[a]
 
 
 def main():
-    nums = []
+    nums: list[int] = []
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -36,6 +38,7 @@ def main():
         nums.append(int(line))
 
     wrong = fidn_wrong_num(nums)
+    assert wrong
 
     acc = [0]
     prev_to_acc_pos = {0: 0}

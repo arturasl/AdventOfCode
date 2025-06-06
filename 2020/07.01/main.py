@@ -11,18 +11,18 @@ class Edge:
 
 
 def main():
-    parents = defaultdict(list)
+    parents: dict[str, list[Edge]] = defaultdict(list)
     re_row = re.compile(r"(?P<cnt>\d+) (?P<color>.*?) bags?")
     for line in sys.stdin:
         line = line.strip()
         line = "0 " + line.replace(".", "").replace(",", "").replace("contain", "")
 
-        found = re_row.findall(line)
+        found: list[tuple[str, str]] = re_row.findall(line)
         parent = found[0][1]
         for cnt, to_node in found[1:]:
-            parents[to_node].append(Edge(cnt, parent))
+            parents[to_node].append(Edge(int(cnt), parent))
 
-    visited = set([])
+    visited: set[str] = set()
     queue = ["shiny gold"]
     while queue:
         cur = queue.pop()

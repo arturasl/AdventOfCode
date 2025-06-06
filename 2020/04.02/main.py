@@ -1,5 +1,6 @@
 import re
 import sys
+from collections.abc import Callable
 
 REQUIRED_FIELDS = frozenset(
     [
@@ -27,7 +28,7 @@ def main():
     }
     assert res.keys() == REQUIRED_FIELDS
 
-    checks = {
+    checks: dict[str, Callable[[re.Match[str], str], bool]] = {
         "byr": lambda _, v: 1920 <= int(v) <= 2002,
         "iyr": lambda _, v: 2010 <= int(v) <= 2020,
         "eyr": lambda _, v: 2020 <= int(v) <= 2030,
@@ -36,8 +37,8 @@ def main():
             or (m["m"] == "cm" and 150 <= int(m["num"]) <= 193)
             or (m["m"] == "in" and 59 <= int(m["num"]) <= 76)
         ),
-        "hcl": lambda *_: True,
-        "ecl": lambda *_: True,
+        "hcl": lambda unused1, unused2: True,
+        "ecl": lambda unused1, unused2: True,
         "pid": lambda _, v: len(v) == 9,
     }
     assert checks.keys() == REQUIRED_FIELDS
