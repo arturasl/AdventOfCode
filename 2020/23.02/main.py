@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import override
 
 
 @dataclass
@@ -54,24 +53,6 @@ class List:
         self.label_to_node[new_label] = new_node
 
         node.nxt = new_node
-
-    def to_list(self) -> list[int]:
-        cur_node = self.first_node
-        if not cur_node:
-            return []
-
-        labels: list[int] = []
-        while True:
-            assert cur_node
-            labels.append(cur_node.label)
-            cur_node = cur_node.nxt
-            if cur_node == self.first_node:
-                break
-        return labels
-
-    @override
-    def __str__(self):
-        return ",".join(str(label) for label in self.to_list())
 
 
 def solve(cups: list[int], moves: int) -> int:
