@@ -1,3 +1,6 @@
+import sys
+
+
 def solve(inp: int, moves: int) -> int:
     cups: list[int] = []
     while inp:
@@ -45,7 +48,8 @@ def test_second():
 
 
 def main():
-    print(solve(942387615, 100))
+    inp, moves = sys.stdin.readline().strip().split(" ")
+    print(solve(int(inp), int(moves)))
 
 
 if __name__ == "__main__":

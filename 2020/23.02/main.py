@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+
 
 class Node:
     def __init__(self, label: int, nxt: Node | None = None):
@@ -96,8 +98,9 @@ def test_third():
 
 
 def main():
+    inp, moves = sys.stdin.readline().strip().split(" ")
     print(
-        solve([9, 4, 2, 3, 8, 7, 6, 1, 5] + list(range(10, 1_000_000 + 1)), 10_000_000)
+        solve([int(x) for x in list(inp)] + list(range(10, 1_000_000 + 1)), int(moves))
     )
 
 
