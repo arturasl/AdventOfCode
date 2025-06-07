@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 
-
-@dataclass
 class Node:
-    label: int
-    nxt: Node | None
+    def __init__(self, label: int, nxt: Node | None = None):
+        self.label: int = label
+        self.nxt: Node = nxt or self
 
 
 class List:
@@ -19,8 +17,7 @@ class List:
         result = List()
 
         assert labels
-        result.first_node = Node(labels[0], None)
-        result.first_node.nxt = result.first_node
+        result.first_node = Node(labels[0])
         result.label_to_node[labels[0]] = result.first_node
 
         prev_label = labels[0]
@@ -32,8 +29,6 @@ class List:
     def remove_right(self, node_label: int) -> int:
         node = self.label_to_node[node_label]
         assert node
-        assert node.nxt
-        assert node.nxt.nxt
 
         if node.nxt == self.first_node:
             self.first_node = node.nxt.nxt
@@ -46,7 +41,6 @@ class List:
     def append_right(self, node_label: int, new_label: int):
         node = self.label_to_node[node_label]
         assert node
-        assert node.nxt
 
         new_node = Node(new_label, node.nxt)
         assert new_label not in self.label_to_node
@@ -73,13 +67,10 @@ def solve(cups: list[int], moves: int) -> int:
             lst.append_right(dest_label, removed_label)
 
         next_node = lst.label_to_node[cur_label].nxt
-        assert next_node
         cur_label = next_node.label
 
     nxt_to_one = lst.label_to_node[1].nxt
-    assert nxt_to_one
     nxt_nxt_to_one = nxt_to_one.nxt
-    assert nxt_nxt_to_one
 
     return nxt_to_one.label * nxt_nxt_to_one.label
 
