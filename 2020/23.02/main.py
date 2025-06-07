@@ -9,12 +9,13 @@ class Node:
 
 class List:
     def __init__(self):
-        self.label_to_node: dict[int, Node] = {}
+        self.label_to_node: list[Node | None] = []
         self.first_node: Node | None = None
 
     @staticmethod
     def from_list(labels: list[int]) -> List:
         result = List()
+        result.label_to_node = [None for _ in range(max(labels) + 1)]
 
         assert labels
         result.first_node = Node(labels[0])
@@ -34,7 +35,7 @@ class List:
             self.first_node = node.nxt.nxt
 
         del_label = node.nxt.label
-        del self.label_to_node[del_label]
+        self.label_to_node[del_label] = None
         node.nxt = node.nxt.nxt
         return del_label
 
@@ -43,7 +44,7 @@ class List:
         assert node
 
         new_node = Node(new_label, node.nxt)
-        assert new_label not in self.label_to_node
+        assert self.label_to_node[new_label] is None
         self.label_to_node[new_label] = new_node
 
         node.nxt = new_node
@@ -60,16 +61,20 @@ def solve(cups: list[int], moves: int) -> int:
             removed_labels.append(lst.remove_right(cur_label))
 
         dest_label = (cur_label - 1) % (ma_cup + 1)
-        while dest_label not in lst.label_to_node:
+        while lst.label_to_node[dest_label] is None:
             dest_label = (dest_label - 1) % (ma_cup + 1)
 
         for removed_label in reversed(removed_labels):
             lst.append_right(dest_label, removed_label)
 
-        next_node = lst.label_to_node[cur_label].nxt
+        cur_node = lst.label_to_node[cur_label]
+        assert cur_node
+        next_node = cur_node.nxt
         cur_label = next_node.label
 
-    nxt_to_one = lst.label_to_node[1].nxt
+    first_node = lst.label_to_node[1]
+    assert first_node
+    nxt_to_one = first_node.nxt
     nxt_nxt_to_one = nxt_to_one.nxt
 
     return nxt_to_one.label * nxt_nxt_to_one.label
