@@ -1,5 +1,0 @@
-**/*.lock
-**/large.in
-**/*.python-version
-**/.venv
-**/__pycache__

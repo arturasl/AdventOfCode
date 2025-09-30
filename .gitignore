@@ -1,0 +1,20 @@
+./jj
+**/large.in
+**/*.png
+**/*.dot
+
+# Clojure
+**/.clj-kondo/
+**/.lsp/
+
+# Rust
+**/debug/
+**/target/
+**/Cargo.lock
+**/*.rs.bk
+
+# Python
+**/*.lock
+**/*.python-version
+**/.venv
+**/__pycache__

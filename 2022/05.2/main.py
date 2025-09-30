@@ -1,13 +1,14 @@
-import sys
 import re
+import sys
+
 
 def read_stacks():
     stacks = []
     for line in sys.stdin:
         if not line.strip():
             break
-        parts = [line[i:i+4].strip().strip('[]') for i in range(0, len(line), 4)]
-        if parts[0] == '1':
+        parts = [line[i : i + 4].strip().strip("[]") for i in range(0, len(line), 4)]
+        if parts[0] == "1":
             continue
         while len(stacks) < len(parts):
             stacks.append([])
@@ -17,18 +18,21 @@ def read_stacks():
     stacks = [stack[::-1] for stack in stacks]
     return stacks
 
+
 def move(stacks):
     for line in sys.stdin:
-        g = re.match(r'^move (\d+) from (\d+) to (\d+)$', line.strip())
+        g = re.match(r"^move (\d+) from (\d+) to (\d+)$", line.strip())
         c, f, t = [int(g.group(i + 1)) for i in range(3)]
         stacks[t - 1].extend(stacks[f - 1][-c:])
         del stacks[f - 1][-c:]
     return stacks
 
+
 def main():
     stacks = read_stacks()
     stacks = move(stacks)
-    print(''.join([stack[-1] for stack in stacks]))
+    print("".join([stack[-1] for stack in stacks]))
+
 
 if __name__ == "__main__":
     main()
