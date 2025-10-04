@@ -1,7 +1,13 @@
 (ns d01-1.core
   (:gen-class))
 
+(def a ^:my-metadata [1 2 3])
+
+(do
+  (+ 1 1 2 2)
+  (println "hello"))
+
 (defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+  [& _]
+  (println a)
+  (println (meta a)))
