@@ -1,46 +1,47 @@
 (ns d04-2.core
   (:gen-class)
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.test :refer [deftest is]]))
 
 (defn num->digits [num]
   (if (<= num 9)
     [num]
     (concat (num->digits (quot num 10)) [(mod num 10)])))
 
-(comment
-  (num->digits 123)
-  (num->digits 100)
-  (num->digits 0))
+(deftest test-num->digits
+  (is (= [1 2 3] (num->digits 123)))
+  (is (= [1 0 0] (num->digits 100)))
+  (is (= [0] (num->digits 0))))
 
 (defn none-decreasing? [digits]
   (apply <= digits))
 
-(comment
-  (none-decreasing? [1 2 3])
-  (none-decreasing? [1 2 2])
-  (none-decreasing? [1 2 1]))
+(deftest test-none-decreasing?
+  (is (true? (none-decreasing? [1 2 3])))
+  (is (true? (none-decreasing? [1 2 2])))
+  (is (false? (none-decreasing? [1 2 1]))))
 
 (defn has-same-two-digits? [digits]
   (boolean (some #(= 2 (count %)) (partition-by identity digits))))
 
-(comment
-  (has-same-two-digits? [1 2 3])
-  (has-same-two-digits? [1 2 2])
-  (has-same-two-digits? [1 2 2 2])
-  (has-same-two-digits? [1 1 2 2 2]))
+(deftest test-has-same-two-digits?
+  (is (false? (has-same-two-digits? [1 2 3])))
+  (is (true? (has-same-two-digits? [1 2 2])))
+  (is (false? (has-same-two-digits? [1 2 2 2])))
+  (is (true? (has-same-two-digits? [1 1 2 2 2]))))
 
 (defn has-six-digits? [digits]
   (= (count digits) 6))
 
-(comment
-  (has-six-digits? [1 2 3])
-  (has-six-digits? [1 2 3 4 5 6]))
+(deftest test-has-six-digits?
+  (is (false? (has-six-digits? [1 2 3])))
+  (is (true? (has-six-digits? [1 2 3 4 5 6]))))
 
 (defn parse-rng [rng]
   (vec (->> (str/split rng #"-") (map str/trim) (map parse-long))))
 
-(comment
-  (parse-rng " 123455 - 123456 "))
+(deftest test-parse-rng
+  (is (= [123455 123456] (parse-rng " 123455 - 123456 "))))
 
 (defn solve [rng]
   (let [[low high] (parse-rng rng)]
@@ -53,8 +54,8 @@
          (filter true?)
          count)))
 
-(comment
-  (solve " 123455 - 123456 "))
+(deftest test-solve
+  (is (= 1 (solve " 123455 - 123456 "))))
 
 (defn -main
   [& _]
