@@ -6,7 +6,7 @@
 # Clojure
 **/.clj-kondo/
 **/.lsp/
-**/.lein-repl*
+**/.lein-*
 
 # Rust
 **/debug/
