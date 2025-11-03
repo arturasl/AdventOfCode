@@ -2,6 +2,7 @@
 **/large.in
 **/*.png
 **/*.dot
+**/*.pdf
 
 # Clojure
 **/.clj-kondo/
