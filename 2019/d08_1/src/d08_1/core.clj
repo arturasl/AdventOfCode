@@ -3,8 +3,8 @@
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is]]))
 
-(def width 25)
-(def height 6)
+(def ^:const width 25)
+(def ^:const height 6)
 
 (defn str->list [s]
   (->> (map str s)
