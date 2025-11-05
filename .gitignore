@@ -8,6 +8,7 @@
 **/.clj-kondo/
 **/.lsp/
 **/.lein-*
+**/.nrepl-port
 
 # Rust
 **/debug/
