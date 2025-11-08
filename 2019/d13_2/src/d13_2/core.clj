@@ -64,9 +64,7 @@
 
 (defn parse-instruction [program]
   (let [opcode (get-memory program)
-        op-data (opcode->op-data opcode)
-        op (:op op-data)
-        num-params (:num-params op-data)
+        {:keys [op num-params]} (opcode->op-data opcode)
         str-addressings (reverse (if (>= opcode 100) (str (quot opcode 100)) ""))
         str-addressings-full (->> (repeat (- num-params (count str-addressings)) \0)
                                   (concat str-addressings)
@@ -195,59 +193,33 @@
                                     :ball "⬤")))
                       (into [] (repeat height (into [] (repeat width " "))))
                       (for [y (range height) x (range width)] [y x]))]
-    (str/join "\n"
-              (concat (map str/join drawn)
-                      [(str "Score: " (:score grid))]))))
+    (str (str/join "\n" (map str/join drawn)) "\nScore: " (:score grid))))
 
-(defn output->grid [output]
-  (->> output
+(defn program->grid [program]
+  (->> (:output program)
        (parse-tile-instructions)
        flatten
        (apply hash-map)))
 
-(defn get-item [grid item]
-  (some #(and (= (second %) item) %) grid))
+(defn get-item-x [grid item]
+  (some #(and (= (second %) item) (:x (first %))) grid))
 
-(defn get-item-x [item]
-  (:x (first item)))
-
-(defn get-next-move [ball horizontal-paddle]
-  (compare (get-item-x ball) (get-item-x horizontal-paddle)))
-
-(defn grid->output [grid]
-  (vec
-   (flatten
-    (map (fn [[pos id-symb]]
-           (if (= pos :score)
-             [-1 0 id-symb]
-             [(:x pos)
-              (:y pos)
-              (case id-symb
-                :empty 0
-                :wall 1
-                :block 2
-                :horizontal-paddle 3
-                :ball 4
-                (throw (ex-info (str "Unknown id-symb: " id-symb) {:id id-symb})))]))
-         grid))))
-
-(defn play [s]
-  (loop [program (-> s str->memory init-program (assoc-in [:memory 0] 2) exec)]
-    (if (= (:state program) :waiting-read)
-      (let [grid (output->grid (:output program))
-            ball (get-item grid :ball)
-            horizontal-paddle (get-item grid :horizontal-paddle)
-            program (to->stdin program [(get-next-move ball horizontal-paddle)])
-            program (assoc program :output (grid->output grid))]
-        (println (grid->str grid))
-        (recur (exec program)))
-      (do
-        (assert (= (:state program) :halt))
-        program))))
+(defn get-next-move [grid]
+  (compare (get-item-x grid :ball) (get-item-x grid :horizontal-paddle)))
 
 (defn solve [s]
-  (:score (output->grid (:output (play s)))))
+  (loop [program (-> s str->memory init-program (assoc-in [:memory 0] 2) exec)
+         grid (program->grid program)]
+    (println (grid->str grid))
+    (if (= (:state program) :halt)
+      program
+      (do
+        (assert (= (:state program) :waiting-read))
+        (let [program-wo-output (assoc program :output [])
+              next-program (exec (to->stdin program-wo-output [(get-next-move grid)]))
+              next-grid (merge grid (program->grid next-program))]
+          (recur next-program next-grid))))))
 
 (defn -main
   [& _]
-  (println (solve (slurp  "./large.in"))))
+  (solve (slurp  "./large.in")))
