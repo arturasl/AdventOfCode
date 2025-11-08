@@ -37,7 +37,10 @@ main() {
     next_base="$(printf "d%02d_%d" "$next_day" "$next_task")"
 
     cp --recursive "$from" "${cur_dir}/${next_base}"
-    mv "${cur_dir}/${next_base}/src/${from_base}" "${cur_dir}/${next_base}/src/${next_base}"
+    dirs="$(find "${cur_dir}/${next_base}" -name "${from_base}")"
+    for dir in $dirs; do
+        mv "$dir" "$(dirname "$dir")/${next_base}"
+    done
     find "${cur_dir}/${next_base}" -type f -exec \
         sed --in-place "--expression=s#${from_base}#${next_base}#g" '{}' \
         ';'
