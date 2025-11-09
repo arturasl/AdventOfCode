@@ -6,7 +6,8 @@
   :dependencies [[org.clojure/clojure "1.12.3"]
                  [org.clojure/math.combinatorics "0.3.0"]
                  [org.clojure/math.numeric-tower "0.1.0"]
-                 [org.clojure/data.finger-tree "0.1.0"]]
+                 [org.clojure/data.finger-tree "0.1.0"]
+                 [org.clojure/data.priority-map "1.2.0"]]
   :main ^:skip-aot d14-1.core
   :target-path "target/%s"
   :test-paths ["src/" "test/"]
