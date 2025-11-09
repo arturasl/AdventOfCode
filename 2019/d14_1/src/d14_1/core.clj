@@ -1,8 +1,7 @@
 (ns d14-1.core
   (:gen-class)
   (:require [clojure.string :as str]
-            [clojure.test :refer [deftest is]]
-            [clojure.data.priority-map :refer [priority-map]]))
+            [clojure.test :refer [deftest is]]))
 
 (defn match->ingredient [[_ s_quantity ingredient]]
   {:ingredient (keyword ingredient) :cnt (parse-long s_quantity)})
@@ -26,60 +25,165 @@
          (str->reaction "32 AZ, 4 B => 1 AB"))))
 
 (defn str->reactions [s]
-  (->> (str/split-lines s)
+  (->> (if (string? s) (str/split-lines s) s)
        (map str/trim)
        (remove empty?)
        (map str->reaction)))
 
-(defn applicable? [reaction have]
+(defn collapse-rule [rule target]
+  (let [rule-produces (:ingredient rule)
+        rule-produces-cnt (:cnt rule)
+        target-needs-rule-outputs (rule-produces (:needs target))]
+    (if (or (nil? target-needs-rule-outputs) (not= (mod target-needs-rule-outputs rule-produces-cnt) 0))
+      target
+      (assoc target :needs
+             (merge-with +
+                         (dissoc (:needs target) rule-produces)
+                         (into {} (map (fn [[ingredient cnt]] [ingredient (* cnt (/ target-needs-rule-outputs rule-produces-cnt))]) (:needs rule))))))))
+
+(deftest test-collapse-rule
+  ; Not multiplicative.
+  (is (= {:ingredient :B :cnt 6 :needs {:A 11 :B 1 :D 3}}
+         (collapse-rule
+          {:ingredient :A :cnt 5 :needs {:B 1 :C 2}}
+          {:ingredient :B :cnt 6 :needs {:A 11 :B 1 :D 3}})))
+  ; Does not need.
+  (is (= {:ingredient :B :cnt 6 :needs {:Z 11 :B 1 :D 3}}
+         (collapse-rule
+          {:ingredient :A :cnt 5 :needs {:B 1 :C 2}}
+          {:ingredient :B :cnt 6 :needs {:Z 11 :B 1 :D 3}})))
+  ; Ok.
+  (is (= {:ingredient :B :cnt 6 :needs {:B 3 :C 4 :D 3 :E 8}}
+         (collapse-rule
+          {:ingredient :A :cnt 5 :needs {:B 1 :C 2 :E 4}}
+          {:ingredient :B :cnt 6 :needs {:A 10 :B 1 :D 3}}))))
+
+(defn collapse-rules [rule rules]
+  (loop [result-rules rules]
+    (let [next-result (map (partial collapse-rule rule) result-rules)]
+      (if (= result-rules next-result)
+        next-result
+        (recur next-result)))))
+
+(defn collapse-all-rules [rules]
+  (loop [result-rules rules]
+    (let [next-result (reduce (fn [acc-rules rule] (collapse-rules rule acc-rules)) result-rules result-rules)]
+      (if (= result-rules next-result)
+        next-result
+        (recur next-result)))))
+
+(defn remove-unused [rules]
+  (loop [result-rules rules]
+    (let [all-needs (reduce (fn [acc rule] (into acc (keys (:needs rule)))) #{:FUEL} result-rules)
+          next-rules (filter #(contains? all-needs (:ingredient %)) result-rules)]
+      (if (= result-rules next-rules)
+        next-rules
+        (recur next-rules)))))
+
+(defn clean-rules [rules]
+  (->> rules
+       collapse-all-rules
+       remove-unused))
+
+(deftest test-clean-rules
+  (is (= [{:ingredient :B, :cnt 3, :needs {:ORE 8}}
+          {:ingredient :C, :cnt 5, :needs {:ORE 7}}
+          {:ingredient :FUEL, :cnt 1, :needs {:B 23, :C 37, :ORE 45}}]
+         (->> ["9 ORE => 2 A"
+               "8 ORE => 3 B"
+               "7 ORE => 5 C"
+               "3 A, 4 B => 1 AB"
+               "5 B, 7 C => 1 BC"
+               "4 C, 1 A => 1 CA"
+               "2 AB, 3 BC, 4 CA => 1 FUEL"]
+              str->reactions
+              clean-rules))))
+
+(defn get-ingredient-maxes [rules]
+  (merge-with +
+              (into {} (map #(vector (:ingredient %) (:cnt %)) rules))
+              (apply (partial merge-with max) (map :needs rules))))
+
+(deftest test-get-ingredient-maxes
+  (is (= {:C 17 :D 3}
+         (get-ingredient-maxes [{:ingredient :C, :cnt 5, :needs {:C 9 :D 3}}
+                                {:ingredient :C, :cnt 5, :needs {:C 12 :D 3}}])))
+  (is (= {:ORE 6}
+         (get-ingredient-maxes [{:ingredient :ORE, :cnt 5, :needs {:ORE 1}}]))))
+
+(defn try-apply [reaction have]
   (let [needs (:needs reaction)
-        needed-have-after (into {} (map
-                                    #(vector % ((if (= % :ORE) + -) (get have % 0) (get needs %)))
-                                    (keys needs)))
-        all-positive (every? (partial <= 0) (vals needed-have-after))]
+        have-after-needs (into {} (map (fn [[need-ingredient need-cnt]]
+                                         (vector need-ingredient (- (get have need-ingredient 0) need-cnt)))
+                                       needs))
+        applied (merge-with +
+                            (merge have have-after-needs)
+                            {(:ingredient reaction) (:cnt reaction)})
+        used-ore (if (neg? (:ORE applied 0)) (abs (:ORE applied)) 0)
+        applied-fixing-ore (if (:ORE applied) (update applied :ORE (partial max 0)) applied)
+        all-positive (every? (partial <= 0) (vals applied-fixing-ore))]
     (when all-positive
-      (into {}
-            (remove #(zero? (second %))
-                    (merge-with
-                     +
-                     (merge have needed-have-after)
-                     {(:ingredient reaction) (:cnt reaction)}))))))
+      {:used-ore used-ore
+       :next-have (into {} (remove #(zero? (second %)) applied-fixing-ore))})))
 
-(deftest test-applicable?
+(deftest test-try-apply
   (is (= nil
-         (applicable? {:ingredient :AB :cnt 5 :needs {:A 1 :B 2 :ORE 9}} {:A 8 :C 3})))
-  (is (= {:A 7 :C 3 :ORE 9 :AB 5}
-         (applicable? {:ingredient :AB :cnt 5 :needs {:A 1 :B 2 :ORE 9}} {:A 8 :B 2 :C 3})))
-  (is (= {:AB 9}
-         (applicable? {:ingredient :AB :cnt 5 :needs {:AB 3}} {:AB 7}))))
+         (try-apply {:ingredient :AB :cnt 5 :needs {:A 1 :B 2 :ORE 9}} {:A 8 :C 3})))
+  (is (= {:used-ore 0 :next-have {:A 7 :C 3 :AB 5}}
+         (try-apply {:ingredient :AB :cnt 5 :needs {:A 1 :B 2}} {:A 8 :B 2 :C 3})))
+  (is (= {:used-ore 0 :next-have {:AB 5 :ORE 1}}
+         (try-apply {:ingredient :AB :cnt 5 :needs {:ORE 3}} {:ORE 4})))
+  (is (= {:used-ore 0 :next-have {:AB 5}}
+         (try-apply {:ingredient :AB :cnt 5 :needs {:ORE 3}} {:ORE 3})))
+  (is (= {:used-ore 1 :next-have {:AB 5}}
+         (try-apply {:ingredient :AB :cnt 5 :needs {:ORE 4}} {:ORE 3}))))
 
-(defn minimize-ore
-  ([reactions] (minimize-ore (priority-map {} 0) reactions #{} 0))
-  ([queue reactions visited its]
-   (let [[have ore] (peek queue)
-         queue (pop queue)]
-     (when (= (mod its 10000) 0)
-       (println "its: " its
-                ", states visited: " (count visited)
-                ", have: " have
-                ", ore " ore))
-     (if (:FUEL have)
-       ore
-       (let [applicable-haves (remove nil? (map #(applicable? % have) reactions))
-             sorted-haves (sort-by :ORE applicable-haves)
-             {:keys [next-queue next-visited]}
-             (reduce (fn [{:keys [next-queue next-visited]} applicable-have]
-                       (let [have-wo-ore (dissoc applicable-have :ORE)]
-                         (if (contains? next-visited have-wo-ore)
-                           {:next-queue next-queue :next-visited next-visited}
-                           {:next-queue (assoc next-queue applicable-have (:ORE applicable-have))
-                            :next-visited (conj next-visited have-wo-ore)})))
-                     {:next-queue queue :next-visited visited}
-                     sorted-haves)]
-         (recur next-queue reactions next-visited (inc its)))))))
+(defn next-state [cur-state best-state {:keys [used-ore next-have]}]
+  (merge
+   (-> cur-state
+       (assoc :have next-have)
+       (update :used-ore (partial + used-ore))
+       (assoc-in [:arivals next-have] (+ used-ore (:used-ore cur-state)))
+       (assoc :its 1))
+   {:fuel-required-ore (:fuel-required-ore best-state)}
+   {:arivals (merge-with min (:arivals cur-state) (:arivals best-state))}))
+
+(defn merge-states [lhs rhs]
+  (let [[lhs _] (sort-by :fuel-required-ore [lhs rhs])]
+    (-> lhs
+        (update :its (partial + (:its rhs))))))
+
+(defn minimize-ore-s
+  ([reactions]
+   (let [result
+         (minimize-ore-s
+          {:reactions reactions
+           :ingredient-maxes (get-ingredient-maxes reactions)}
+          {:have {}
+           :used-ore 0
+           :its 1
+           :arivals {}
+           :fuel-required-ore 1000000})]
+     (println "Resulting state: " (dissoc result :arivals))
+     (:fuel-required-ore result)))
+  ([config state]
+   (cond
+     (<= (get (:arivals state) (:have state) 1000000) (:used-ore state)) state
+     (>= (:used-ore state) (:fuel-required-ore state)) state
+     (some #(< (% (:ingredient-maxes config)) (% (:have state))) (keys (:have state))) state
+     (:FUEL (:have state)) (assoc state :fuel-required-ore (:used-ore state))
+     :else (let [applicable (remove nil? (map #(try-apply % (:have state)) (:reactions config)))
+                 ordered-applicables (shuffle applicable)]
+             (reduce (fn [best-state applicable-have]
+                       (->> applicable-have
+                            (next-state state best-state)
+                            (minimize-ore-s config)
+                            (merge-states best-state)))
+                     state
+                     ordered-applicables)))))
 
 (deftest test-minimize-ore
-  (let [str->minimize-ore (comp minimize-ore str->reactions (partial str/join "\n"))]
+  (let [str->minimize-ore (comp minimize-ore-s clean-rules str->reactions)]
     (is (= 31
            (str->minimize-ore ["10 ORE => 10 A"
                                "1 ORE => 1 B"
@@ -87,6 +191,16 @@
                                "7 A, 1 C => 1 D"
                                "7 A, 1 D => 1 E"
                                "7 A, 1 E => 1 FUEL"])))
+
+    (is (= 165
+           (str->minimize-ore ["9 ORE => 2 A"
+                               "8 ORE => 3 B"
+                               "7 ORE => 5 C"
+                               "3 A, 4 B => 1 AB"
+                               "5 B, 7 C => 1 BC"
+                               "4 C, 1 A => 1 CA"
+                               "2 AB, 3 BC, 4 CA => 1 FUEL"])))
+
     (is (= 13312
            (str->minimize-ore ["157 ORE => 5 NZVS"
                                "165 ORE => 6 DCFZ"
@@ -110,7 +224,7 @@
     ;                            "145 ORE => 6 MNCFX"
     ;                            "1 NVRVD => 8 CXFTF"
     ;                            "1 VJHF, 6 MNCFX => 4 RFSQX"
-    ;                            "176 ORE => 6 VJHF"])))
+    ;                            "176 ORE => 6 VJHF"])))))
 
     ; (is (= 2210736
     ;        (str->minimize-ore ["171 ORE => 8 CNZTR"
@@ -132,6 +246,6 @@
     ;                            "5 BHXH, 4 VRPVC => 5 LTCX"])))))
 
 (defn -main [& _]
-  (println
-   (minimize-ore
-    (str->reactions "10 ORE => 10 A\n1 ORE => 1 B\n7 A, 1 B => 1 C\n7 A, 1 C => 1 D\n7 A, 1 D => 1 E\n7 A, 1 E => 1 FUEL"))))
+  (let [rules (str->reactions (slurp "./large.in"))
+        cleaned (clean-rules rules)]
+    (println "num rules:" (count rules) ", num cleaned: " (count cleaned))))
