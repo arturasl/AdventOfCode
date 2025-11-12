@@ -138,54 +138,46 @@
   (is (= {:used-ore 1 :next-have {:AB 5}}
          (try-apply {:ingredient :AB :cnt 5 :needs {:ORE 4}} {:ORE 3}))))
 
-(defn next-state [cur-state best-state {:keys [used-ore next-have]}]
-  (merge
-   (-> cur-state
-       (assoc :have next-have)
-       (update :used-ore (partial + used-ore)))
-   (select-keys best-state [:fuel-required-ore :arivals :its])))
+(defn next-state [cur-state {:keys [used-ore next-have]}]
+  (-> cur-state
+      (assoc :have next-have)
+      (update :used-ore (partial + used-ore))))
 
-(defn merge-states [best-state new-state]
-  (let [best (min-key :fuel-required-ore best-state new-state)]
-    (merge best (select-keys new-state [:its :arivals]))))
+(defn next-globals [cur-globals cur-state]
+  (assoc-in cur-globals [:arivals (:have cur-state)] (:used-ore cur-state)))
 
 (def ^:const max-ore-ever 1000000000)
 
 (defn minimize-ore-s
-  ([reactions]
-   (let [cleaned-reactions (clean-rules reactions)
-         result
-         (minimize-ore-s
-          {:reactions cleaned-reactions
-           :ingredient-maxes (get-ingredient-maxes cleaned-reactions)}
-          {:have {}
-           :used-ore 0
-           :its 1
-           :arivals {}
-           :fuel-required-ore max-ore-ever})]
-     (println "Resulting state: " (dissoc result :arivals))
-     (:fuel-required-ore result)))
-  ([{:keys [:ingredient-maxes :reactions] :as config}
-    {:keys [:used-ore :have] :as state}]
-   (cond
-     (>= used-ore (:fuel-required-ore state)) state
-     (:FUEL have) (assoc state :fuel-required-ore used-ore)
-     (some #(< (% ingredient-maxes) (% have)) (keys have)) state
-     (<= (get (:arivals state) have max-ore-ever) used-ore) state
-     :else (let [applicable (remove nil? (map #(try-apply % have) reactions))
-                 ordered-applicables (shuffle applicable)
-                 updated-state (-> state
-                                   (update :its inc)
-                                   (assoc-in [:arivals have] used-ore))]
-             (when (zero? (mod (:its updated-state) 10000))
-               (println "Cur best state: " (dissoc updated-state :arivals)))
-             (reduce (fn [best-state applicable-have]
-                       (->> applicable-have
-                            (next-state state best-state)
-                            (minimize-ore-s config)
-                            (merge-states best-state)))
-                     updated-state
-                     ordered-applicables)))))
+  ([init-reactions]
+   (let [reactions (clean-rules init-reactions)
+         ingredient-maxes (get-ingredient-maxes reactions)
+         {:keys [:its :fuel-required-ore]} (minimize-ore-s reactions ingredient-maxes)]
+     (println "Finished in its:" its "with result:" fuel-required-ore)
+     fuel-required-ore))
+  ([reactions ingredient-maxes]
+   (loop [stack [{:have {} :used-ore 0}]
+          globals {:its 1 :arivals {} :fuel-required-ore max-ore-ever}]
+     (if (empty? stack) globals
+         (let [{:keys [:used-ore :have] :as state} (peek stack)
+               stack (pop stack)
+               globals (update globals :its inc)]
+           (when (zero? (mod (:its globals) 100000))
+             (println "Cur globals" (dissoc globals :arivals)
+                      "stack size:" (count stack)
+                      "have now:" have))
+           (cond
+             (or
+              (>= used-ore (:fuel-required-ore globals))
+              (some #(< (% ingredient-maxes) (% have)) (keys have))
+              (<= (get (:arivals globals) have max-ore-ever) used-ore))
+             (recur stack globals)
+             (:FUEL have) (recur stack (assoc globals :fuel-required-ore used-ore))
+             :else (let [applicable (remove nil? (map #(try-apply % have) reactions))
+                         ordered-applicables (shuffle applicable)
+                         next-globals (next-globals globals state)
+                         next-stack (apply conj stack (map (partial next-state state) ordered-applicables))]
+                     (recur next-stack next-globals))))))))
 
 (deftest test-minimize-ore
   (let [str->minimize-ore (comp minimize-ore-s str->reactions)]
@@ -251,6 +243,7 @@
     ;                            "5 BHXH, 4 VRPVC => 5 LTCX"])))))
 
 (defn -main [& _]
-  (let [rules (str->reactions (slurp "./large.in"))
-        cleaned (clean-rules rules)]
-    (println "num rules:" (count rules) ", num cleaned: " (count cleaned))))
+  (-> (slurp "./large.in")
+      str->reactions
+      minimize-ore-s
+      println))
