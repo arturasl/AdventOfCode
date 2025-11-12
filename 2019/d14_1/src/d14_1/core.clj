@@ -142,48 +142,53 @@
   (merge
    (-> cur-state
        (assoc :have next-have)
-       (update :used-ore (partial + used-ore))
-       (assoc-in [:arivals next-have] (+ used-ore (:used-ore cur-state)))
-       (assoc :its 1))
-   {:fuel-required-ore (:fuel-required-ore best-state)}
-   {:arivals (merge-with min (:arivals cur-state) (:arivals best-state))}))
+       (update :used-ore (partial + used-ore)))
+   (select-keys best-state [:fuel-required-ore :arivals :its])))
 
-(defn merge-states [lhs rhs]
-  (let [[lhs _] (sort-by :fuel-required-ore [lhs rhs])]
-    (-> lhs
-        (update :its (partial + (:its rhs))))))
+(defn merge-states [best-state new-state]
+  (let [best (min-key :fuel-required-ore best-state new-state)]
+    (merge best (select-keys new-state [:its :arivals]))))
+
+(def ^:const max-ore-ever 1000000000)
 
 (defn minimize-ore-s
   ([reactions]
-   (let [result
+   (let [cleaned-reactions (clean-rules reactions)
+         result
          (minimize-ore-s
-          {:reactions reactions
-           :ingredient-maxes (get-ingredient-maxes reactions)}
+          {:reactions cleaned-reactions
+           :ingredient-maxes (get-ingredient-maxes cleaned-reactions)}
           {:have {}
            :used-ore 0
            :its 1
            :arivals {}
-           :fuel-required-ore 1000000})]
+           :fuel-required-ore max-ore-ever})]
      (println "Resulting state: " (dissoc result :arivals))
      (:fuel-required-ore result)))
-  ([config state]
+  ([{:keys [:ingredient-maxes :reactions] :as config}
+    {:keys [:used-ore :have] :as state}]
    (cond
-     (<= (get (:arivals state) (:have state) 1000000) (:used-ore state)) state
-     (>= (:used-ore state) (:fuel-required-ore state)) state
-     (some #(< (% (:ingredient-maxes config)) (% (:have state))) (keys (:have state))) state
-     (:FUEL (:have state)) (assoc state :fuel-required-ore (:used-ore state))
-     :else (let [applicable (remove nil? (map #(try-apply % (:have state)) (:reactions config)))
-                 ordered-applicables (shuffle applicable)]
+     (>= used-ore (:fuel-required-ore state)) state
+     (:FUEL have) (assoc state :fuel-required-ore used-ore)
+     (some #(< (% ingredient-maxes) (% have)) (keys have)) state
+     (<= (get (:arivals state) have max-ore-ever) used-ore) state
+     :else (let [applicable (remove nil? (map #(try-apply % have) reactions))
+                 ordered-applicables (shuffle applicable)
+                 updated-state (-> state
+                                   (update :its inc)
+                                   (assoc-in [:arivals have] used-ore))]
+             (when (zero? (mod (:its updated-state) 10000))
+               (println "Cur best state: " (dissoc updated-state :arivals)))
              (reduce (fn [best-state applicable-have]
                        (->> applicable-have
                             (next-state state best-state)
                             (minimize-ore-s config)
                             (merge-states best-state)))
-                     state
+                     updated-state
                      ordered-applicables)))))
 
 (deftest test-minimize-ore
-  (let [str->minimize-ore (comp minimize-ore-s clean-rules str->reactions)]
+  (let [str->minimize-ore (comp minimize-ore-s str->reactions)]
     (is (= 31
            (str->minimize-ore ["10 ORE => 10 A"
                                "1 ORE => 1 B"

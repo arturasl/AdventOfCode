@@ -8,6 +8,7 @@
                  [org.clojure/math.numeric-tower "0.1.0"]
                  [org.clojure/data.finger-tree "0.1.0"]
                  [org.clojure/data.priority-map "1.2.0"]]
+  :jvm-opts ["-Xss10m"]
   :main ^:skip-aot d14-1.core
   :target-path "target/%s"
   :test-paths ["src/" "test/"]
