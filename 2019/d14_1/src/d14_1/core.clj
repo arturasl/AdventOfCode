@@ -154,25 +154,25 @@
 
 (def ^:const max-ore-ever 1000000000)
 
-(defn init-stack []
+(defn init-search-space []
   [{:have {} :used-ore 0}])
-(defn pop-stack [stack] (pop stack))
-(defn peek-stack [stack] (peek stack))
-(defn push-all-stack [stack coll]
-  (apply conj stack coll))
+(defn pop-search-space [search-space] (pop search-space))
+(defn peek-search-space [search-space] (peek search-space))
+(defn push-all-search-space [search-space coll]
+  (apply conj search-space coll))
 
-; (defn priority-stack-ord [key]
+; (defn priority-search-space-ord [key]
 ;   ; (vector (- (count (:have key)))
 ;   ;         (reduce + (vals (:have key)))
 ;   ;         (rand)))
 ;   (vector (:used-ore key) (rand)))
-; (defn init-stack []
+; (defn init-search-space []
 ;   (let [key {:have {} :used-ore 0}]
-;     (priority-map key (priority-stack-ord key))))
-; (defn pop-stack [stack] (pop stack))
-; (defn peek-stack [stack] (first (peek stack)))
-; (defn push-all-stack [stack coll]
-;   (into stack (map #(vector % (priority-stack-ord %)) coll)))
+;     (priority-map key (priority-search-space-ord key))))
+; (defn pop-search-space [search-space] (pop search-space))
+; (defn peek-search-space [search-space] (first (peek search-space)))
+; (defn push-all-search-space [search-space coll]
+;   (into search-space (map #(vector % (priority-search-space-ord %)) coll)))
 
 (defn minimize-ore-s
   ([init-reactions]
@@ -182,28 +182,30 @@
      (println "Finished in its:" its "with result:" fuel-required-ore)
      fuel-required-ore))
   ([reactions ingredient-maxes]
-   (loop [stack (init-stack)
+   (loop [search-space (init-search-space)
           globals {:its 1 :arivals {} :fuel-required-ore max-ore-ever}]
-     (if (empty? stack) globals
-         (let [{:keys [:used-ore :have] :as state} (peek-stack stack)
-               stack (pop-stack stack)
+     (if (empty? search-space) globals
+         (let [{:keys [:used-ore :have] :as state} (peek-search-space search-space)
+               search-space (pop-search-space search-space)
                globals (update globals :its inc)]
            (when (zero? (mod (:its globals) 100000))
              (println "Cur globals" (dissoc globals :arivals)
-                      "stack size:" (count stack)
+                      "search-space size:" (count search-space)
                       "now:" state))
            (cond
              (or
               (>= used-ore (:fuel-required-ore globals))
               (some #(< (% ingredient-maxes) (% have)) (keys have))
               (<= (get (:arivals globals) have max-ore-ever) used-ore))
-             (recur stack globals)
-             (:FUEL have) (recur stack (assoc globals :fuel-required-ore used-ore))
+             (recur search-space globals)
+             (:FUEL have) (recur search-space (assoc globals :fuel-required-ore used-ore))
              :else (let [applicable (remove nil? (map #(try-apply % have) reactions))
                          sorted-applicables (sort-applicables applicable)
                          next-globals (next-globals globals state)
-                         next-stack (push-all-stack stack (map (partial next-state state) sorted-applicables))]
-                     (recur next-stack next-globals))))))))
+                         next-search-space (push-all-search-space
+                                            search-space
+                                            (map (partial next-state state) sorted-applicables))]
+                     (recur next-search-space next-globals))))))))
 
 (deftest test-minimize-ore
   (let [str->minimize-ore (comp minimize-ore-s str->reactions)]
