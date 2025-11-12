@@ -1,7 +1,8 @@
 (ns d14-1.core
   (:gen-class)
   (:require [clojure.string :as str]
-            [clojure.test :refer [deftest is]]))
+            [clojure.test :refer [deftest is]]
+            [clojure.data.priority-map :refer [priority-map]]))
 
 (defn match->ingredient [[_ s_quantity ingredient]]
   {:ingredient (keyword ingredient) :cnt (parse-long s_quantity)})
@@ -146,7 +147,32 @@
 (defn next-globals [cur-globals cur-state]
   (assoc-in cur-globals [:arivals (:have cur-state)] (:used-ore cur-state)))
 
+(defn sort-applicables [applicables]
+  applicables)
+  ; (shuffle applicables))
+  ; (sort-by #(vector (- (count (:next-have %))) (reduce + (vals (:next-have %))) (rand)) applicables))
+
 (def ^:const max-ore-ever 1000000000)
+
+(defn init-stack []
+  [{:have {} :used-ore 0}])
+(defn pop-stack [stack] (pop stack))
+(defn peek-stack [stack] (peek stack))
+(defn push-all-stack [stack coll]
+  (apply conj stack coll))
+
+; (defn priority-stack-ord [key]
+;   ; (vector (- (count (:have key)))
+;   ;         (reduce + (vals (:have key)))
+;   ;         (rand)))
+;   (vector (:used-ore key) (rand)))
+; (defn init-stack []
+;   (let [key {:have {} :used-ore 0}]
+;     (priority-map key (priority-stack-ord key))))
+; (defn pop-stack [stack] (pop stack))
+; (defn peek-stack [stack] (first (peek stack)))
+; (defn push-all-stack [stack coll]
+;   (into stack (map #(vector % (priority-stack-ord %)) coll)))
 
 (defn minimize-ore-s
   ([init-reactions]
@@ -156,16 +182,16 @@
      (println "Finished in its:" its "with result:" fuel-required-ore)
      fuel-required-ore))
   ([reactions ingredient-maxes]
-   (loop [stack [{:have {} :used-ore 0}]
+   (loop [stack (init-stack)
           globals {:its 1 :arivals {} :fuel-required-ore max-ore-ever}]
      (if (empty? stack) globals
-         (let [{:keys [:used-ore :have] :as state} (peek stack)
-               stack (pop stack)
+         (let [{:keys [:used-ore :have] :as state} (peek-stack stack)
+               stack (pop-stack stack)
                globals (update globals :its inc)]
            (when (zero? (mod (:its globals) 100000))
              (println "Cur globals" (dissoc globals :arivals)
                       "stack size:" (count stack)
-                      "have now:" have))
+                      "now:" state))
            (cond
              (or
               (>= used-ore (:fuel-required-ore globals))
@@ -174,9 +200,9 @@
              (recur stack globals)
              (:FUEL have) (recur stack (assoc globals :fuel-required-ore used-ore))
              :else (let [applicable (remove nil? (map #(try-apply % have) reactions))
-                         ordered-applicables (shuffle applicable)
+                         sorted-applicables (sort-applicables applicable)
                          next-globals (next-globals globals state)
-                         next-stack (apply conj stack (map (partial next-state state) ordered-applicables))]
+                         next-stack (push-all-stack stack (map (partial next-state state) sorted-applicables))]
                      (recur next-stack next-globals))))))))
 
 (deftest test-minimize-ore
@@ -207,21 +233,21 @@
                                "177 ORE => 5 HKGWZ"
                                "7 DCFZ, 7 PSHF => 2 XJWVT"
                                "165 ORE => 2 GPVTF"
-                               "3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT"])))))
+                               "3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT"])))
 
-    ; (is (= 180697
-    ;        (str->minimize-ore ["2 VPVL, 7 FWMGM, 2 CXFTF, 11 MNCFX => 1 STKFG"
-    ;                            "17 NVRVD, 3 JNWZP => 8 VPVL"
-    ;                            "53 STKFG, 6 MNCFX, 46 VJHF, 81 HVMC, 68 CXFTF, 25 GNMV => 1 FUEL"
-    ;                            "22 VJHF, 37 MNCFX => 5 FWMGM"
-    ;                            "139 ORE => 4 NVRVD"
-    ;                            "144 ORE => 7 JNWZP"
-    ;                            "5 MNCFX, 7 RFSQX, 2 FWMGM, 2 VPVL, 19 CXFTF => 3 HVMC"
-    ;                            "5 VJHF, 7 MNCFX, 9 VPVL, 37 CXFTF => 6 GNMV"
-    ;                            "145 ORE => 6 MNCFX"
-    ;                            "1 NVRVD => 8 CXFTF"
-    ;                            "1 VJHF, 6 MNCFX => 4 RFSQX"
-    ;                            "176 ORE => 6 VJHF"])))))
+    (is (= 180697
+           (str->minimize-ore ["2 VPVL, 7 FWMGM, 2 CXFTF, 11 MNCFX => 1 STKFG"
+                               "17 NVRVD, 3 JNWZP => 8 VPVL"
+                               "53 STKFG, 6 MNCFX, 46 VJHF, 81 HVMC, 68 CXFTF, 25 GNMV => 1 FUEL"
+                               "22 VJHF, 37 MNCFX => 5 FWMGM"
+                               "139 ORE => 4 NVRVD"
+                               "144 ORE => 7 JNWZP"
+                               "5 MNCFX, 7 RFSQX, 2 FWMGM, 2 VPVL, 19 CXFTF => 3 HVMC"
+                               "5 VJHF, 7 MNCFX, 9 VPVL, 37 CXFTF => 6 GNMV"
+                               "145 ORE => 6 MNCFX"
+                               "1 NVRVD => 8 CXFTF"
+                               "1 VJHF, 6 MNCFX => 4 RFSQX"
+                               "176 ORE => 6 VJHF"])))))
 
     ; (is (= 2210736
     ;        (str->minimize-ore ["171 ORE => 8 CNZTR"
