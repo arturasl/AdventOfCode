@@ -1,5 +1,7 @@
 ./jj
 **/large.in
+**/small.in
+**/in
 **/*.png
 **/*.dot
 **/*.pdf
