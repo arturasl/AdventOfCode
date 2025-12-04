@@ -64,6 +64,8 @@ async function main() {
         to_remove.add(other);
       }
     }
+
+    around.delete(enc_cur);
   }
 
   console.log(removed);
