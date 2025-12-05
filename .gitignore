@@ -6,6 +6,10 @@
 **/*.dot
 **/*.pdf
 
+# Javascript
+**/node_modules/
+**/package-lock.json
+
 # Clojure
 **/.clj-kondo/
 **/.lsp/
