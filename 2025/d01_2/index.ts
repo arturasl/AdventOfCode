@@ -1,11 +1,11 @@
 import readline from "node:readline";
 import assert from "node:assert";
 
-function mod(x, m) {
+function mod(x: number, m: number): number {
   return ((x % m) + m) % m;
 }
 
-function div(a, b) {
+function div(a: number, b: number): number {
   return Math.trunc(a / b);
 }
 
@@ -17,7 +17,10 @@ async function main() {
   })) {
     const match = line.match(/^(?<dir>[LR])(?<str_ammount>\d+)$/);
     assert(match, `While parsing ${line}`);
-    const { dir, str_ammount } = match.groups;
+    const { dir, str_ammount } = match.groups as {
+      dir: string;
+      str_ammount: string;
+    };
 
     const next_position =
       position + (dir == "R" ? +1 : -1) * parseInt(str_ammount, 10);

@@ -9,10 +9,13 @@ async function main() {
   })) {
     const match = line.match(/^(?<dir>[LR])(?<str_ammount>\d+)$/);
     assert(match, `While parsing ${line}`);
-    const { dir, str_ammount } = match.groups;
+    const { dir, str_ammount } = match.groups as {
+      dir: string;
+      str_ammount: string;
+    };
     position += (dir == "R" ? +1 : -1) * parseInt(str_ammount, 10);
     position = ((position % 100) + 100) % 100;
-    zeroes += position == 0;
+    zeroes += +(position == 0);
   }
 
   console.log(zeroes);

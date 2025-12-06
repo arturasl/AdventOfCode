@@ -3,12 +3,13 @@ import assert from "node:assert";
 
 async function main() {
   let ranges = [];
-  for await (const line of readline.createInterface({
+  for await (let line of readline.createInterface({
     input: process.stdin,
   })) {
+    line = line.replace(/,+$/, "");
     for (const range of line.split(",")) {
       const [str_lhs, str_rhs] = range.split("-");
-      ranges.push({ lhs: BigInt(str_lhs), rhs: BigInt(str_rhs) });
+      ranges.push({ lhs: BigInt(str_lhs!), rhs: BigInt(str_rhs!) });
     }
   }
 
@@ -24,22 +25,22 @@ async function main() {
   }
 
   for (let i = 0; i < valid.length - 1; i += 1) {
-    assert(valid[i] < valid[i + 1]);
+    assert(valid[i]! < valid[i + 1]!);
   }
 
   let prefix_sum = [0n];
   for (const el of valid) {
-    prefix_sum.push(prefix_sum.at(-1) + el);
+    prefix_sum.push(prefix_sum.at(-1)! + el);
   }
 
   // Smallest valid >= n.
-  const find_pos = (n) => {
+  const find_pos = (n: bigint): number => {
     let low = 0;
     let high = valid.length - 1;
     while (low <= high) {
       let mid = low + ((high - low) >> 1);
 
-      if (valid[mid] < n) {
+      if (valid[mid]! < n) {
         low = mid + 1;
       } else {
         high = mid - 1;
@@ -50,9 +51,9 @@ async function main() {
 
   let sum = 0n;
   for (const { lhs, rhs } of ranges) {
-    sum += prefix_sum[find_pos(rhs + 1n)] - prefix_sum[find_pos(lhs)];
+    sum += prefix_sum[find_pos(rhs + 1n)]! - prefix_sum[find_pos(lhs)]!;
   }
-  console.log(sum);
+  console.log(sum.toString());
 }
 
 main();

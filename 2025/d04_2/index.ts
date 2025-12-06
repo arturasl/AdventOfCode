@@ -2,13 +2,13 @@ import readline from "node:readline";
 import assert from "node:assert";
 
 async function main() {
-  const rolls = new Set();
+  const rolls: Set<string> = new Set();
 
-  const enc_coords = (y, x) => `${y};${x}`;
-  const dec_coords = (s) => {
+  const enc_coords = (y: number, x: number): string => `${y};${x}`;
+  const dec_coords = (s: string): [number, number] => {
     const parts = s.split(";");
     assert(parts.length == 2);
-    return [parseInt(parts[0], 10), parseInt(parts[1], 10)];
+    return [+parts[0]!, +parts[1]!];
   };
 
   let y = 0;

@@ -1,11 +1,11 @@
 import readline from "node:readline";
 import assert from "node:assert";
 
-function maxi(arr, start, end) {
+function maxi(arr: string, start: number, end: number) {
   assert(start < end);
   let best_idx = start;
   for (let idx = start + 1; idx < end; idx += 1) {
-    if (arr[best_idx] < arr[idx]) {
+    if (arr[best_idx]! < arr[idx]!) {
       best_idx = idx;
     }
   }
