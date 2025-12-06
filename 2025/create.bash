@@ -21,7 +21,7 @@ main() {
     npx tsc --init \
         --module NodeNext \
         --moduleResolution NodeNext \
-        --target es2020 \
+        --target es2022 \
         --types node
 
     sed -i'' -e '/\/\//d' tsconfig.json
