@@ -2,7 +2,11 @@ import readline from "node:readline";
 import assert from "node:assert";
 
 async function main() {
-  type Op = "*" | "+";
+  const Op = {
+    mul: "*",
+    add: "+",
+  } as const;
+  type Op = (typeof Op)[keyof typeof Op];
 
   const matrix: number[][] = [];
   const ops: Op[] = [];
@@ -36,8 +40,8 @@ async function main() {
   assert(matrix.length && ops.length == matrix.at(-1)!.length);
 
   const op_funcs: Record<Op, (a: number, b: number) => number> = {
-    "*": (a: number, b: number) => a * b,
-    "+": (a: number, b: number) => a + b,
+    [Op.mul]: (a: number, b: number) => a * b,
+    [Op.add]: (a: number, b: number) => a + b,
   };
   let col_sols: number[] = [];
   for (let col_idx = 0; col_idx < ops.length; col_idx++) {
