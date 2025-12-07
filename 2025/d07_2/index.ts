@@ -17,28 +17,28 @@ async function main() {
 
   const timelines: number[][] = [];
   for (let y = 0; y < map.length; y++) {
-    timelines.push(Array(map[y]!.length).fill(0));
+    timelines.push(Array(map[y].length).fill(0));
   }
 
   for (let y = 0; y < map.length - 1; y++) {
-    for (let x = 0; x < map[y]!.length; x++) {
-      const cur = timelines[y]![x]! + +(map[y]![x] == "S");
+    for (let x = 0; x < map[y].length; x++) {
+      const cur = timelines[y][x] + +(map[y][x] == "S");
       if (!cur) {
         continue;
       }
 
-      const bellow = map[y + 1]![x]!;
+      const bellow = map[y + 1][x];
       if (bellow == ".") {
-        timelines[y + 1]![x]! += cur;
+        timelines[y + 1][x] += cur;
         continue;
       }
 
       assert(bellow == "^");
 
-      assert(map[y + 1]![x - 1] == ".");
-      timelines[y + 1]![x - 1]! += cur;
-      assert(map[y + 1]![x + 1] == ".");
-      timelines[y + 1]![x + 1]! += cur;
+      assert(map[y + 1][x - 1] == ".");
+      timelines[y + 1][x - 1] += cur;
+      assert(map[y + 1][x + 1] == ".");
+      timelines[y + 1][x + 1] += cur;
     }
   }
 

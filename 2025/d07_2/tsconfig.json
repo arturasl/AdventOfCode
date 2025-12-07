@@ -9,7 +9,7 @@
     "declaration": true,
     "declarationMap": true,
 
-    "noUncheckedIndexedAccess": true,
+    "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": true,
 
 

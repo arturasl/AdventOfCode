@@ -22,7 +22,8 @@ main() {
         --module NodeNext \
         --moduleResolution NodeNext \
         --target es2022 \
-        --types node
+        --types node \
+        --noUncheckedIndexedAccess false
 
     sed -i'' -e '/\/\//d' tsconfig.json
 
