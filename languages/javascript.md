@@ -1,6 +1,9 @@
 ```.js
 blocks?.[y]?.[x] ?? " "
 Array.from(line.matchAll(/\d+/g), (entry) => +entry[0];);
+Array.of(...els);
+Array(10).fill(1)
+blocks.at(-1)
 
 const Op = {
   mul: "*",
