@@ -21,7 +21,7 @@ main() {
     npx tsc --init \
         --module NodeNext \
         --moduleResolution NodeNext \
-        --target es2022 \
+        --target ESNext \
         --types node \
         --noUncheckedIndexedAccess false
 
