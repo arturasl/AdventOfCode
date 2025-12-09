@@ -35,9 +35,7 @@ async function main() {
     assert(match);
     points.push(
       Object.fromEntries(
-        Object.entries(
-          line.match(/^(?<x>-?\d+),(?<y>-?\d+),(?<z>-?\d+)$/)!.groups!,
-        ).map(([k, v]) => [k, +v]),
+        Object.entries(match.groups!).map(([k, v]) => [k, +v]),
       ) as Point,
     );
   }
