@@ -80,15 +80,11 @@ function create_filled_interrior(points: Point[]) {
   for (let i = 0; i < points.length; i += 1) {
     const cur = points[i];
     const next = points[(i + 1) % points.length];
-    if (cur.x == next.x) {
-      const [mi_y, ma_y] = [Math.min(cur.y, next.y), Math.max(cur.y, next.y)];
-      for (let y = mi_y; y <= ma_y; y += 1) {
-        matrix[y][cur.x] = "#";
-      }
-    } else {
-      const [mi_x, ma_x] = [Math.min(cur.x, next.x), Math.max(cur.x, next.x)];
+    const [mi_y, ma_y] = [Math.min(cur.y, next.y), Math.max(cur.y, next.y)];
+    const [mi_x, ma_x] = [Math.min(cur.x, next.x), Math.max(cur.x, next.x)];
+    for (let y = mi_y; y <= ma_y; y += 1) {
       for (let x = mi_x; x <= ma_x; x += 1) {
-        matrix[cur.y][x] = "#";
+        matrix[y][x] = "#";
       }
     }
   }
@@ -100,20 +96,13 @@ function create_filled_interrior(points: Point[]) {
     const cur = stack.pop()!;
     for (let dy = -1; dy <= 1; dy += 1) {
       for (let dx = -1; dx <= 1; dx += 1) {
-        if (dy == 0 && dx == 0) {
-          continue;
-        }
-        if (dy != 0 && dx != 0) {
-          continue;
-        }
         const [ny, nx] = [cur.y + dy, cur.x + dx];
-        if (ny < 0 || nx < 0) {
-          continue;
-        }
-        if (ny >= matrix.length || nx >= matrix[ny].length) {
-          continue;
-        }
-        if (matrix[ny][nx] != ".") {
+        if (
+          !(+(dy == 0) ^ +(dx == 0)) ||
+          !(0 <= ny && ny < matrix.length) ||
+          !(0 <= nx && nx < matrix[ny].length) ||
+          matrix[ny][nx] != "."
+        ) {
           continue;
         }
         matrix[ny][nx] = "o";
@@ -124,18 +113,9 @@ function create_filled_interrior(points: Point[]) {
 
   for (let y = 0; y < matrix.length; y++) {
     for (let x = 0; x < matrix[y].length; x++) {
-      switch (matrix[y][x]) {
-        case "o":
-          matrix[y][x] = ".";
-          break;
-        case ".":
-          matrix[y][x] = "#";
-          break;
-        case "#":
-          break;
-        default:
-          assert(false, `Found: '${matrix[y][x]}'`);
-      }
+      const translate = { o: ".", ".": "#", "#": "#" }[matrix[y][x]];
+      assert(translate);
+      matrix[y][x] = translate;
     }
   }
 
