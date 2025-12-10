@@ -1,6 +1,10 @@
 ```.js
 blocks?.[y]?.[x] ?? " "
-Array.from(line.matchAll(/\d+/g), (entry) => +entry[0];);
+
+Array.from(line.matchAll(/\d+/g), (entry) => +entry[0]);
+Array.from(line.matchAll(/\d+/g), Number);
+Array.from({ length: presses.length }, (_, k) => k);
+
 Array.of(...els);
 Array(10).fill(1)
 blocks.at(-1)
