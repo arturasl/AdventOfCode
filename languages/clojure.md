@@ -5,7 +5,7 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
 
 # Conditions
 
-```.lisp
+```.clj
 ((cond
    (< -1 0) "negative"
    (> -1 0) "positive"
@@ -14,7 +14,7 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
 
 # Functions
 
-```.lisp
+```.clj
 (defn func
   ([onearg] (println "one arg variant"))
   ([one two] (println "two arg variant")))
@@ -22,29 +22,29 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
 
 Anonymous function with first argument referred as `%` and subsequent ones with `%n`.
 
-```.lisp
+```.clj
 (#(println % %2) 1 2))
 ```
 
 Is equivalent to
 
-```.lisp
+```.clj
 ((fn [a1 a2] (println a1 a2)) 1 2))
 ```
 
 # Containers
 
-```.lisp
+```.clj
 (conj #{1 2 3} 4)
 #{1 3 2 9}
 ```
 
-```.lisp
+```.clj
 (contains? #{1 2 3} 1)
 true
 ```
 
-```.lisp
+```.clj
 (empty? [])
 true
 ```
@@ -54,13 +54,13 @@ multiple changes are needed), insert a value into it and convert back
 to an immutable version. Note that most operations can act on transient
 structure by suffixing them with an exclamation `!` mark.
 
-```.lisp
+```.clj
 (println (persistent! (conj! (transient []) 1)))
 ```
 
 # Matching
 
-```.lisp
+```.clj
 (let [[a b & rest :as full] [1 2 3 4]]
     (println a)
     (println b)
@@ -72,13 +72,13 @@ structure by suffixing them with an exclamation `!` mark.
 [1 2 3 4]
 ```
 
-```.lisp
+```.clj
 (let [[a] []]
     (println a))
 nil
 ```
 
-```.lisp
+```.clj
 (let [{:keys [name]} {:name 1 :other 2}]
   (println name)))
 1
@@ -86,7 +86,7 @@ nil
 
 Map desctructuring by providing default values:
 
-```.lisp
+```.clj
 (let [{:keys [name  missing] :or {name 3 missing 2}} {:name 1 :other 2}]
   (println name)
   (println missing)))
@@ -94,26 +94,26 @@ Map desctructuring by providing default values:
 
 # Other
 
-```.lisp
+```.clj
 ((juxt * +) 2 3) ; [(+ 2 3) (* 2 3)]
 6 5
 ```
 
-```.lisp
+```.clj
 ; Produce a map where keys are result of calling `:grp` on all items of second
 ; argument and values are a vector with all agreeing items.
 (group-by :grp [{:grp 1} {:grp 1} {:grp 2}])
 {1 [{:grp 1} {:grp 1}], 2 [{:grp 2}]}
 ```
 
-```.lisp
+```.clj
 ; Update given nested maps (first argument) by a path (second argument) to a
 ; value (third argument).
 (assoc-in {:a {:b 1}} [:a :b] 2)
 {:a {:b 2}}
 ```
 
-```.lisp
+```.clj
 ; Update given nested maps (first argument) by a path (second argument) to a
 ; value received by applying a function (third argument)
 (println (update-in {:a {:b 1}} [:a :b] #(+ % 1))))
@@ -124,7 +124,7 @@ Map desctructuring by providing default values:
 
 Attach arbitrary metadata to a `def` variable:
 
-```.lisp
+```.clj
 (def a ^{:my-metadata 1} [1 2 3])
 
 (do
@@ -137,7 +137,7 @@ Attach arbitrary metadata to a `def` variable:
 
 Short hand to attach a boolean equal to `true`:
 
-```.lisp
+```.clj
 (def a ^:my-metadata [1 2 3])
 
 (do
