@@ -13,7 +13,7 @@ async function main() {
       dir: string;
       str_ammount: string;
     };
-    position += (dir == "R" ? +1 : -1) * parseInt(str_ammount, 10);
+    position += (dir == "R" ? +1 : -1) * +str_ammount;
     position = ((position % 100) + 100) % 100;
     zeroes += +(position == 0);
   }

@@ -1,9 +1,9 @@
 import readline from "node:readline";
 
-function repeat(num: bigint, base: bigint, times: bigint): bigint {
-  let result = 0n;
+function repeat(num: number, base: number, times: number): number {
+  let result = 0;
   for (let i = 0; i < times; i += 1) {
-    result = result * base * 10n + num;
+    result = result * base * 10 + num;
   }
   return result;
 }
@@ -16,7 +16,7 @@ async function main() {
     line = line.replace(/,+$/, "");
     for (const range of line.split(",")) {
       const [str_lhs, str_rhs] = range.split("-");
-      ranges.push({ lhs: BigInt(str_lhs!), rhs: BigInt(str_rhs!) });
+      ranges.push({ lhs: +str_lhs!, rhs: +str_rhs! });
     }
   }
 
@@ -25,13 +25,9 @@ async function main() {
     .reduce((prev, cur) => (prev > cur ? prev : cur));
 
   let valid = [];
-  for (let base = 1n; repeat(base, base, 2n) <= upper_bound; base *= 10n) {
-    for (
-      let times = 2n;
-      repeat(base, base, times) <= upper_bound;
-      times += 1n
-    ) {
-      for (let num = base; num < base * 10n; num += 1n) {
+  for (let base = 1; repeat(base, base, 2) <= upper_bound; base *= 10) {
+    for (let times = 2; repeat(base, base, times) <= upper_bound; times += 1) {
+      for (let num = base; num < base * 10; num += 1) {
         valid.push(repeat(num, base, times));
       }
     }
@@ -40,13 +36,13 @@ async function main() {
     a > b ? 1 : a == b ? 0 : -1,
   );
 
-  let prefix_sum = [0n];
+  let prefix_sum = [0];
   for (const el of valid) {
     prefix_sum.push(prefix_sum.at(-1)! + el);
   }
 
   // Smallest valid >= n.
-  const find_pos = (n: bigint): number => {
+  const find_pos = (n: number): number => {
     let low = 0;
     let high = valid.length - 1;
     while (low <= high) {
@@ -61,9 +57,9 @@ async function main() {
     return low;
   };
 
-  let sum = 0n;
+  let sum = 0;
   for (const { lhs, rhs } of ranges) {
-    sum += prefix_sum[find_pos(rhs + 1n)]! - prefix_sum[find_pos(lhs)]!;
+    sum += prefix_sum[find_pos(rhs + 1)]! - prefix_sum[find_pos(lhs)]!;
   }
   console.log(sum);
 }

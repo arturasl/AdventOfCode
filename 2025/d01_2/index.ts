@@ -22,8 +22,7 @@ async function main() {
       str_ammount: string;
     };
 
-    const next_position =
-      position + (dir == "R" ? +1 : -1) * parseInt(str_ammount, 10);
+    const next_position = position + (dir == "R" ? +1 : -1) * +str_ammount;
 
     if (next_position % 100 == 0) {
       zeroes += 1;

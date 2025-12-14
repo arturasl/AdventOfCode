@@ -9,7 +9,7 @@ async function main() {
     line = line.replace(/,+$/, "");
     for (const range of line.split(",")) {
       const [str_lhs, str_rhs] = range.split("-");
-      ranges.push({ lhs: BigInt(str_lhs!), rhs: BigInt(str_rhs!) });
+      ranges.push({ lhs: +str_lhs!, rhs: +str_rhs! });
     }
   }
 
@@ -18,9 +18,9 @@ async function main() {
     .reduce((prev, cur) => (prev > cur ? prev : cur));
 
   let valid = [];
-  for (let base = 1n; base * base * 10n + base <= upper_bound; base *= 10n) {
-    for (let num = base; num < base * 10n; num += 1n) {
-      valid.push(num * base * 10n + num);
+  for (let base = 1; base * base * 10 + base <= upper_bound; base *= 10) {
+    for (let num = base; num < base * 10; num += 1) {
+      valid.push(num * base * 10 + num);
     }
   }
 
@@ -28,13 +28,13 @@ async function main() {
     assert(valid[i]! < valid[i + 1]!);
   }
 
-  let prefix_sum = [0n];
+  let prefix_sum = [0];
   for (const el of valid) {
     prefix_sum.push(prefix_sum.at(-1)! + el);
   }
 
   // Smallest valid >= n.
-  const find_pos = (n: bigint): number => {
+  const find_pos = (n: number): number => {
     let low = 0;
     let high = valid.length - 1;
     while (low <= high) {
@@ -49,9 +49,9 @@ async function main() {
     return low;
   };
 
-  let sum = 0n;
+  let sum = 0;
   for (const { lhs, rhs } of ranges) {
-    sum += prefix_sum[find_pos(rhs + 1n)]! - prefix_sum[find_pos(lhs)]!;
+    sum += prefix_sum[find_pos(rhs + 1)]! - prefix_sum[find_pos(lhs)]!;
   }
   console.log(sum.toString());
 }
