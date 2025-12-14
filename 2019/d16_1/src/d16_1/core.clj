@@ -3,34 +3,27 @@
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is]]))
 
-(defn str->num-list [s]
-  (map #(Character/digit %1 10) s))
+(defn str->num-vec [s]
+  (vec (map #(Character/digit %1 10) s)))
 
-(def pattern [0 1 0 -1])
-
-(defn expand-pattern [n]
-  (->> pattern
-       (map (partial repeat n))
-       repeat
-       flatten
-       (drop 1)))
-
-(deftest test-expand-pattern
-  (is (= [1 0 -1 0 1]
-         (take 5 (expand-pattern 1))))
-  (is (= [0 0 1 1 1 0 0 0 -1 -1 -1]
-         (take 11 (expand-pattern 3)))))
+(defn get-ranges [s cnt]
+  (let [s_len (count s)
+        prefix_sum (reduce (fn [acc el] (conj acc (+ (last acc) el))) [0] s)]
+    (for [row (range s_len)]
+      (let [jump (* (inc row) 4)
+            len (inc row)
+            start (if (= cnt 1) row (+ 2 (* row 3)))]
+        (loop [i start result 0]
+          (if (>= i s_len) result
+              (recur
+               (+ i jump)
+               (+ result (- (nth prefix_sum (min (+ i len) s_len)) (nth prefix_sum i))))))))))
 
 (defn next-phase [s]
-  (let [cnt (count s)]
-    (for [n (map inc (range cnt))]
-      (mod
-       (abs
-        (reduce +
-                (map #(* %1 %2)
-                     s
-                     (take cnt (expand-pattern n)))))
-       10))))
+  (vec (map
+        #(mod (abs (- %1 %2)) 10)
+        (get-ranges s 1)
+        (get-ranges s -1))))
 
 (deftest test-next-phase
   (is (= [4 8 2 2 6 1 5 8]
@@ -44,7 +37,7 @@
          (next-phase-rep [1 2 3 4 5 6 7 8] 4))))
 
 (defn first-eight [s]
-  (apply str (take 8 (next-phase-rep (str->num-list s) 100))))
+  (apply str (take 8 (next-phase-rep (str->num-vec s) 100))))
 
 (deftest test-first-eight
   (is (= "24176176"
