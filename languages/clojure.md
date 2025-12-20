@@ -6,10 +6,29 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
 # Conditions
 
 ```.clj
+(if (<= 1 2) "ok" "nok")
+(when (<= 1 2) "ok") ; else defaults to nil.
+```
+
+```.clj
 ((cond
    (< -1 0) "negative"
    (> -1 0) "positive"
    :else "zero")))
+```
+
+```.clj
+(case (+ 2 3)
+ 3 "nok"
+ 5 "ok"
+ "default")
+```
+
+# Errors
+
+```.clj
+(throw (ex-info "Unknown opcode" {:opcode opcode}))))
+(assert (not= 1 2) (str "Unknown opcode: " opcode))
 ```
 
 # Functions
@@ -20,7 +39,8 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
   ([one two] (println "two arg variant")))
 ```
 
-Anonymous function with first argument referred as `%` and subsequent ones with `%n`.
+Anonymous function with first argument referred as `%` (or `%1`) and subsequent
+ones with `%n`.
 
 ```.clj
 (#(println % %2) 1 2))
@@ -30,6 +50,10 @@ Is equivalent to
 
 ```.clj
 ((fn [a1 a2] (println a1 a2)) 1 2))
+```
+
+```.clj
+(def adder (memoize (fn [x y] (+ x y))))
 ```
 
 # Containers
@@ -92,7 +116,7 @@ nil
 Map desctructuring by providing default values:
 
 ```.clj
-(let [{:keys [name  missing] :or {name 3 missing 2}} {:name 1 :other 2}]
+(let [{:keys [name missing] :or {name 3 missing 2}} {:name 1 :other 2}]
   (println name)
   (println missing)))
 ```
@@ -153,4 +177,31 @@ Short hand to attach a boolean equal to `true`:
 {:my-metadata true}
 ```
 
-# Files
+# Libraries
+
+## Double linked list
+
+```.clj
+(:require [clojure.data.finger-tree :as finger])
+
+; Operating on left side.
+(= 1 (first (finger/double-list 1 2 3)))
+(= [0 1 2 3] (finger/conjl (finger/double-list 1 2 3) 0))
+(= [2 3] (rest (finger/double-list 1 2 3)))
+
+; Operating on right side.
+(= 3 (peek (finger/double-list 1 2 3)))
+(= [1 2 3 4] (conj (finger/double-list 1 2 3) 4))
+(= [1 2 3 4 5] (into (finger/double-list 1 2 3) [4 5]))
+(= [1 2] (pop (finger/double-list 1 2 3)))
+```
+
+## Priority queue
+
+```.clj
+(:require [clojure.data.priority-map :refer [priority-map]])
+
+(priority-map state1 dist1 state2 dist2 state3 dist3)
+(= [:b 2] (peek (priority-map :a 5 :b 2 :c 9)))
+(= {:a 5 :c 9} (pop (priority-map :a 5 :b 2 :c 9)))
+```
