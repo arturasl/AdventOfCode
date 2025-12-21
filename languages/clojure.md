@@ -11,10 +11,10 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
 ```
 
 ```.clj
-((cond
-   (< -1 0) "negative"
-   (> -1 0) "positive"
-   :else "zero")))
+(cond
+  (< -1 0) "negative"
+  (> -1 0) "positive"
+  :else "zero")
 ```
 
 ```.clj
