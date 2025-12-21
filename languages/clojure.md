@@ -177,6 +177,12 @@ Short hand to attach a boolean equal to `true`:
 {:my-metadata true}
 ```
 
+# Strings
+
+```.clj
+parse-long "-2"
+```
+
 # Libraries
 
 ## Double linked list
