@@ -37,6 +37,7 @@ main() {
     next_base="$(printf "d%02d_%d" "$next_day" "$next_task")"
 
     cp --recursive "$from" "${cur_dir}/${next_base}"
+    rm -rf "${cur_dir}/${next_base}/target"
     dirs="$(find "${cur_dir}/${next_base}" -name "${from_base}")"
     for dir in $dirs; do
         mv "$dir" "$(dirname "$dir")/${next_base}"

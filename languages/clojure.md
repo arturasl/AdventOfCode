@@ -183,6 +183,14 @@ Short hand to attach a boolean equal to `true`:
 parse-long "-2"
 ```
 
+# Math
+
+```.clj
+(= 3 (quot 10 3)) ; Floor(10 / 3).
+(= 10/3 (/ 10 3)) ; By default uses fractions.
+1234567N ; BigInt
+```
+
 # Libraries
 
 ## Double linked list
