@@ -140,6 +140,10 @@ Map desctructuring by providing default values:
 ```
 
 ```.clj
+(= {:a 1 :c 3} (select-keys {:a 1 :b 2 :c 3} [:a :c]))
+```
+
+```.clj
 ; Produce a map where keys are result of calling `:grp` on all items of second
 ; argument and values are a vector with all agreeing items.
 (group-by :grp [{:grp 1} {:grp 1} {:grp 2}])
