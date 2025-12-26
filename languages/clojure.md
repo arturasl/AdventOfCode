@@ -3,6 +3,12 @@ lein new app d01_1
 rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgignore}
 ```
 
+# Constants
+
+```.clj
+(def ^:const pi 3.14)
+```
+
 # Conditions
 
 ```.clj
@@ -126,6 +132,11 @@ Map desctructuring by providing default values:
 ```.clj
 ((juxt * +) 2 3) ; [(+ 2 3) (* 2 3)]
 6 5
+```
+
+```.clj
+(defn add-coords [lhs rhs]
+    (merge-with + lhs rhs))
 ```
 
 ```.clj
