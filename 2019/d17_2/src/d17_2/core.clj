@@ -162,7 +162,6 @@
                    (map vec)
                    vec)
         height (count cells)
-        _ (assert (< 0 height))
         width (count (first cells))]
     {:height height
      :width width
@@ -199,19 +198,28 @@
   (is (= [76 44 54 44 76 44 50 10]
          (ins-to-bytes ["L" 6 "L" 2]))))
 
+; L 4 L 4 L 6 R 10 L 6 L 4 L 4 L 6 R 10 L 6 L 12 L 6 R 10 L 6 R 8
+; R 10 L 6 R 8 R 10 L 6 L 4 L 4 L 6 R 10 L 6 R 8 R 10 L 6 L 12 L 6
+; R 10 L 6 R 8 R 10 L 6 L 12 L 6 R 10 L 6
+
+; A A B C C A C B C B
+; A: L 4 L 4 L 6 R 10 L 6
+; B: L 12 L 6 R 10 L 6
+; C: R 8 R 10 L 6
+
 (defn solve [s]
   (let [memory (str->memory s)
         grid (read-grid memory)
         _ (print-grid grid)
         memory (assoc memory 0 2)
         program (exec (to->stdin (init-program memory)
-                                 (concat (ins-to-bytes [:A :B :C :B :A :C])
-                                         (ins-to-bytes ["L" 4 "L" 4 "L" 6 "R"])
-                                         (ins-to-bytes ["R" 4 "R" 4 "R" 8])
-                                         (ins-to-bytes ["L" 6 "L" 2])
-                                         [(int \y) (int \newline)])))]
-    (print-grid (output-to-grid (:output program)))))
+                                 (concat (ins-to-bytes [:A :A :B :C :C :A :C :B :C :B])
+                                         (ins-to-bytes ["L" 4 "L" 4 "L" 6 "R" 10 "L" 6])
+                                         (ins-to-bytes ["L" 12 "L" 6 "R" 10 "L" 6])
+                                         (ins-to-bytes ["R" 8 "R" 10 "L" 6])
+                                         [(int \n) (int \newline)])))]
+    (println (:output program))))
 
 (defn -main
   [& _]
-  (println (solve (slurp  "./large.in"))))
+  (solve (slurp  "./large.in")))
