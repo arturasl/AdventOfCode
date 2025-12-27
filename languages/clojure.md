@@ -30,6 +30,12 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
  "default")
 ```
 
+```.clj
+; Note that < can accept multiple arguments making it easier to create bound
+; checks.
+(<= 0 y (dec height))
+```
+
 # Errors
 
 ```.clj

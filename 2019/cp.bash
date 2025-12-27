@@ -31,7 +31,7 @@ main() {
     cur_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
     local newest
-    newest="$(find  "$cur_dir" -maxdepth 1 -name "d*_*" | sort --reverse | head --lines=1)"
+    newest="$(find "$cur_dir" -maxdepth 1 -name "d*_*" | sort --reverse | head --lines=1)"
 
     local from_base
 
@@ -63,7 +63,7 @@ main() {
 
     cp --recursive "${cur_dir}/${from_base}" "${cur_dir}/${next_base}"
     rm -rf "${cur_dir}/${next_base}/target"
-    dirs="$(find "${cur_dir}/${next_base}" -name "${from_base}")"
+    dirs="$(find "${cur_dir}/${next_base}" -maxdepth 3 -name "${from_base}")"
     for dir in $dirs; do
         mv "$dir" "$(dirname "$dir")/${next_base}"
     done
