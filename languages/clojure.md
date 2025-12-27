@@ -234,3 +234,10 @@ parse-long "-2"
 (= [:b 2] (peek (priority-map :a 5 :b 2 :c 9)))
 (= {:a 5 :c 9} (pop (priority-map :a 5 :b 2 :c 9)))
 ```
+
+## Project Management
+
+```.clj
+; Increase stack size to 1Gb in Lein project.clj.
+:jvm-opts ["-Xss1g"]
+```
