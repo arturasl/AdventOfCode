@@ -240,6 +240,9 @@ parse-long "-2"
 (= [1 2 3 4] (conj (finger/double-list 1 2 3) 4))
 (= [1 2 3 4 5] (into (finger/double-list 1 2 3) [4 5]))
 (= [1 2] (pop (finger/double-list 1 2 3)))
+
+; Ensure input did not change to sequence (e.g. `drop`).
+(assert (instance? clojure.data.finger_tree.DoubleList input))]
 ```
 
 ## Priority queue
