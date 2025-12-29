@@ -36,6 +36,17 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
 (<= 0 y (dec height))
 ```
 
+# Loops
+
+```.clj
+; Iterate over items returning nil
+(doseq [[i item] (map-indexed vector [9 8 7])
+  (println i ": " item)])
+; 0 9
+; 1 8
+; 2 7
+```
+
 # Errors
 
 ```.clj
