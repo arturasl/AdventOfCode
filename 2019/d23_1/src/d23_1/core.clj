@@ -1,6 +1,7 @@
 (ns d23-1.core
   (:gen-class)
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.data.finger-tree :as finger]))
 
 (defn str->memory [s]
   (->> (str/split s #",")
@@ -17,8 +18,8 @@
 (defn init-program [base]
   (if (map? base)
     (let [merged (merge {:memory {0 99}
-                         :input []
-                         :output []
+                         :input (finger/double-list)
+                         :output (finger/double-list)
                          :pointer 0
                          :state :ready
                          :relative-base 0}
@@ -105,18 +106,16 @@
 
 (defn exec-read [program instruction]
   (let [result-addr (resolve-addr program instruction 0)
-        input (:input program)
-        _ (assert (vector? input))]
+        input (:input program)]
     (if (empty? input)
       (assoc-in program [:state] :waiting-read)
       (-> program
-          (update :input #(vec (rest %)))
+          (update :input rest)
           (update :pointer #(+ 2 %))
           (put-memory result-addr (first input))))))
 
 (defn exec-write [program instruction]
-  (let [val (resolve-param program instruction 0)
-        _ (assert (vector? (:output program)))]
+  (let [val (resolve-param program instruction 0)]
     (-> program
         (update :output #(conj % val))
         (update :pointer #(+ 2 %)))))
@@ -182,7 +181,7 @@
         _ (assert (not-empty output) machine)
         _ (assert (zero? (mod (count output) 3)))
         [idx x y] output]
-    [(update network read-idx (fn [machine] (update machine :output #(vec (drop 3 %)))))
+    [(update network read-idx (fn [machine] (update machine :output (partial drop 3))))
      [idx x y]]))
 
 (defn create-packet [network]
