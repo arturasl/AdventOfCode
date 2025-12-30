@@ -8,6 +8,7 @@
                  [org.clojure/data.finger-tree "0.1.0"]]
   :main ^:skip-aot d23-2.core
   :target-path "target/%s"
+  :source-paths ["src/" "../intcode/src/"]
   :test-paths ["src/" "test/"]
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})

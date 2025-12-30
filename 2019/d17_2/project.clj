@@ -7,6 +7,7 @@
                  [org.clojure/math.combinatorics "0.3.0"]
                  [org.clojure/data.finger-tree "0.1.0"]]
   :main ^:skip-aot d17-2.core
+  :source-paths ["src/" "../intcode/src/"]
   :target-path "target/%s"
   :test-paths ["src/" "test/"]
   :profiles {:uberjar {:aot :all

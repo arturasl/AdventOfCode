@@ -1,5 +1,5 @@
-(ns d13-1.core-test
-  (:require [d13-1.core :refer :all]
+(ns intcode.core-test
+  (:require [intcode.core :refer :all]
             [clojure.test :refer [deftest is]]
             [clojure.set :as set]))
 
