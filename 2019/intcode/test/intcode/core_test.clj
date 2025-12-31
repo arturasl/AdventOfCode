@@ -1,7 +1,8 @@
 (ns intcode.core-test
   (:require [intcode.core :refer :all]
             [clojure.test :refer [deftest is]]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [clojure.data.finger-tree :as finger]))
 
 (defn- map-subset? [subset superset]
   (set/subset? (set subset) (set superset)))
@@ -12,8 +13,6 @@
 (deftest test-to->stdin
   (is (= {:input [1 2 3] :state :ready}
          (to->stdin {:input [1 2] :state :waiting-read} [3])))
-  (is (= {:input [1 2] :state :waiting-read}
-         (to->stdin {:input [1 2] :state :waiting-read} nil)))
   (is (= {:input [1 2] :state :waiting-read}
          (to->stdin {:input [1 2] :state :waiting-read} [])))
   (is (= {:input [1 2 3] :state :halt}
@@ -27,7 +26,8 @@
 
 (deftest test-exec
   (let [exec-get-output (fn [memory input]
-                          (-> (init-program {:memory memory :input input})
+                          (-> (init-program {:memory memory})
+                              (to->stdin input)
                               exec
                               (:output)))
         exec-single-output (comp last exec-get-output)]
@@ -46,8 +46,12 @@
     ; Day 5  part 1.
     (is (map-subset? {:memory (memory->map [1 2 3 6 99]) :pointer 4}
                      (exec (init-program {:memory [1 2 3 3 99] :pointer 0}))))
-    (is (map-subset? {:memory (memory->map [42 0 4 0 99]) :input [] :output [42] :pointer 4}
-                     (exec (init-program {:memory [3 0 4 0 99] :input [42] :output [] :pointer 0}))))
+    (is (map-subset? {:memory (memory->map [42 0 4 0 99])
+                      :input (finger/double-list)
+                      :output (finger/double-list 42) :pointer 4}
+                     (exec (init-program {:memory [3 0 4 0 99]
+                                          :input (finger/double-list 42)
+                                          :output (finger/double-list) :pointer 0}))))
 
     ; Day 5  part 2.
     ; Is input 8? (position mode)

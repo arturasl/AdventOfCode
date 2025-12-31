@@ -50,9 +50,9 @@
 
 (defn parse-addressing [mode]
   (case mode
-    \0 :position
-    \1 :immediate
-    \2 :relative
+    0 :position
+    1 :immediate
+    2 :relative
     (throw (ex-info "Unknown addressing:" {:mode mode}))))
 
 (defn get-memory
@@ -65,11 +65,13 @@
 (defn parse-instruction [program]
   (let [opcode (get-memory program)
         {:keys [op num-params]} (opcode->op-data opcode)
-        str-addressings (reverse (if (>= opcode 100) (str (quot opcode 100)) ""))
-        str-addressings-full (->> (repeat (- num-params (count str-addressings)) \0)
-                                  (concat str-addressings)
-                                  (apply str))
-        addressings (vec (map parse-addressing str-addressings-full))]
+        addressings (loop [op-left (quot opcode 100)
+                           result []
+                           its-left num-params]
+                      (if (zero? its-left) result
+                          (recur (quot op-left 10)
+                                 (conj result (parse-addressing (mod op-left 10)))
+                                 (dec its-left))))]
     {:op op
      :addressings addressings
      :pointer (:pointer program)
