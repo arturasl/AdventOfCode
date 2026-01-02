@@ -1,4 +1,4 @@
-(ns d21-1.core
+(ns d21-2.core
   (:gen-class)
   (:require [intcode.core :as code]
             [clojure.string :as str]
@@ -53,14 +53,14 @@
 (defn run-instructions [program instructions]
   (assert (vector? instructions))
   (let [str-instructions (vec (map ins->str instructions))
-        with-end (conj str-instructions "WALK" "")
+        with-end (conj str-instructions "RUN" "")
         bytes (vec (map int (str/join \newline with-end)))]
     (code/exec (code/to->stdin program bytes))))
 
 ; ############ Simple instructions
 
 (defn valid-input [reg]
-  (contains? #{:A :B :C :D :T :J} reg))
+  (contains? #{:A :B :C :D :E :T :J} reg))
 
 (defn valid-output [reg]
   (contains? #{:T :J} reg))
@@ -232,37 +232,39 @@
        (remove #(< 15 (count %)))
        distinct))
 
-(defn solve-find-longest [regs]
-  (->> regs
-       regs->ins
-       (map #(vector (count %) %))
-       (reduce (partial max-key first))))
-
-(defn solve-and-print-random [program regs]
-  (->> regs
-       regs->ins
-       rand-nth
-       (run-instructions program)
-       :output
-       print-output))
-
-(defn solve-find-score [program regs]
-  (->> regs
-       regs->ins
+(defn solve-find-score [program ins]
+  (->> ins
        (pmap #(run-instructions program %))
        (map :output)
        (map #(reduce max %))
        (filter #(> % 178))
        first))
 
+(defn map-ins [ins regs]
+  (let [mapping (zipmap (map #(keyword (str (char %)))
+                             (range (int \A) (inc (int \Z))))
+                        regs)]
+    (vec
+     (map
+      (fn [{:keys [op lhs rhs]}]
+        {:op op
+         :lhs (get mapping lhs lhs)
+         :rhs (get mapping rhs rhs)})
+      ins))))
+
+(deftest test-map-ins
+  (is (= [{:op :not :lhs :B :rhs :D}]
+         (map-ins [{:op :not :lhs :A :rhs :B}] [:B :D]))))
+
 (defn solve [s]
   (let [program (->> s code/str->memory code/init-program)
-        regs [:A :B :C :D]]
-    (println "Len:" (count (regs->ins regs)))
-    (println "Longest:" (solve-find-longest regs))
-    (println "Random")
-    (solve-and-print-random program regs)
-    (println "Solution:" (solve-find-score program regs))))
+        base-regs [:A :B :C :D]
+        base-ins (regs->ins base-regs)]
+    (println "Num instructions:" (count base-ins))
+    (doseq [regs (comb/combinations [:A :B :C :D :E :F :G :H :I] (count base-regs))]
+      (println "Trying:" regs
+               "Result:" (solve-find-score program
+                                           (map #(map-ins % regs) base-ins))))))
 
 (defn -main
   [& _]
