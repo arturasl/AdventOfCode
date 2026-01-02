@@ -234,23 +234,20 @@
        (remove #(< 15 (count %)))
        distinct))
 
-(defn solve-find-longest [regs]
-  (->> regs
-       regs->ins
+(defn solve-find-longest [ins]
+  (->> ins
        (map #(vector (count %) %))
        (reduce (partial max-key first))))
 
-(defn solve-and-print-random [program regs]
-  (->> regs
-       regs->ins
+(defn solve-and-print-random [program ins]
+  (->> ins
        rand-nth
        (run-instructions program)
        :output
        print-output))
 
-(defn solve-find-score [program regs]
-  (->> regs
-       regs->ins
+(defn solve-find-score [program ins]
+  (->> ins
        (pmap #(run-instructions program %))
        (map :output)
        (map #(reduce max %))
@@ -259,12 +256,13 @@
 
 (defn solve [s]
   (let [program (->> s code/str->memory code/init-program)
-        regs [:A :B :C]]
-    (println "Len:" (count (regs->ins regs)))
-    (println "Longest:" (solve-find-longest regs))
+        regs [:A :B :C]
+        ins (regs->ins regs)]
+    (println "Len:" (count ins))
+    (println "Longest:" (solve-find-longest ins))
     (println "Random")
-    (solve-and-print-random program regs)
-    (println "Solution:" (solve-find-score program regs))))
+    (solve-and-print-random program ins)
+    (println "Solution:" (solve-find-score program ins))))
 
 (defn -main
   [& _]
