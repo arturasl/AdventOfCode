@@ -226,6 +226,8 @@
   (->> regs
        subsets-true-false
        comb/subsets
+       (map (fn [ndf]
+              (map #(assoc % :D true) ndf)))
        (map vec)
        (map find-min-ndf)
        (map #(ndf->ins :J :T %))
@@ -257,7 +259,7 @@
 
 (defn solve [s]
   (let [program (->> s code/str->memory code/init-program)
-        regs [:A :B :C :D]]
+        regs [:A :B :C]]
     (println "Len:" (count (regs->ins regs)))
     (println "Longest:" (solve-find-longest regs))
     (println "Random")

@@ -235,9 +235,11 @@
                   ; #####.#..########
                   ; #####..#.###..###
                   ; #####...#########
-                  {:A false :B nil :C nil :D true :E nil :F nil :G nil :H nil :I nil}
-                  {:A nil :B nil :C false :D true :E nil :F nil :G nil :H true :I nil}
-                  {:A true :B false :C nil :D true :E nil :F nil :G nil :H nil :I nil}]
+                  {:A false :B nil :C nil :E nil :F nil :G nil :H nil :I nil}
+                  {:A nil :B nil :C false :E nil :F nil :G nil :H true :I nil}
+                  {:A true :B false :C nil :E nil :F nil :G nil :H nil :I nil}]
+                 (map #(assoc % :D true))
+                 vec
                  find-min-ndf
                  (ndf->ins :J :T))
         _ (println (count ins))
