@@ -72,7 +72,7 @@
       (pop instruction)
       (conj instruction to-add))))
 
-(defn set-true [instructions reg tmp-reg]
+(defn true->ins [instructions reg tmp-reg]
   (assert (not= reg tmp-reg))
   (assert (valid-output reg))
   (assert (valid-output tmp-reg))
@@ -80,11 +80,11 @@
       (append-not reg tmp-reg)
       (conj {:op :or :lhs tmp-reg :rhs reg})))
 
-(deftest test-set-true
-  (is (= true (:J (simulate (set-true [] :J :T) {:J false}))))
-  (is (= true (:J (simulate (set-true [] :J :T) {:J true})))))
+(deftest test-true->ins
+  (is (= true (:J (simulate (true->ins [] :J :T) {:J false}))))
+  (is (= true (:J (simulate (true->ins [] :J :T) {:J true})))))
 
-(defn set-false [instructions reg tmp-reg]
+(defn false->ins [instructions reg tmp-reg]
   (assert (not= reg tmp-reg) reg)
   (assert (valid-output reg) reg)
   (assert (valid-output tmp-reg) tmp-reg)
@@ -92,9 +92,9 @@
       (append-not reg tmp-reg)
       (conj {:op :and :lhs tmp-reg :rhs reg})))
 
-(deftest test-set-false
-  (is (= false (:J (simulate (set-false [] :J :T) {:J false}))))
-  (is (= false (:J (simulate (set-false [] :J :T) {:J true})))))
+(deftest test-false->ins
+  (is (= false (:J (simulate (false->ins [] :J :T) {:J false}))))
+  (is (= false (:J (simulate (false->ins [] :J :T) {:J true})))))
 
 (defn set-to [instructions input-reg result-reg]
   (assert (valid-input input-reg) input-reg)
@@ -109,7 +109,7 @@
 
 ; ############ Complex instructions
 
-(defn ensure-conjunctive [instructions reg-defs result-reg]
+(defn conjuntion->ins [instructions reg-defs result-reg]
   (assert (not-empty reg-defs))
   (assert (every? valid-input (keys reg-defs))
           (str reg-defs))
@@ -134,9 +134,9 @@
               rest-defs)
       (vec ins))))
 
-(deftest test-ensure-conjunctive
+(deftest test-conjuntion->ins
   (let [run (fn [reg-defs start-state]
-              (:J (simulate (ensure-conjunctive [] reg-defs :J) start-state)))
+              (:J (simulate (conjuntion->ins [] reg-defs :J) start-state)))
         find-true-states (fn [reg-defs]
                            (let [all-regs (keys reg-defs)
                                  initial-states (subsets-true-false all-regs)
@@ -154,73 +154,116 @@
     (test-regs [:A :B :C])
     (test-regs [:A :B :C :D])))
 
-(defn ensure-any-true [result-reg tmp-reg vec-reg-defs]
+(defn collapse-conjunction-on-reg [reg lhs rhs]
+  (let [lhs-val (get lhs reg)
+        rhs-val (get rhs reg)
+        lhs-wo-reg (dissoc lhs reg)]
+    (if (and (or (nil? lhs-val)
+                 (nil? rhs-val)
+                 (not= lhs-val rhs-val))
+             (= lhs-wo-reg (dissoc rhs reg)))
+      lhs-wo-reg
+      lhs)))
+
+(defn collapse-conjunction-on-some-reg [lhs rhs]
+  (reduce
+   (fn [lhs-left reg]
+     (collapse-conjunction-on-reg reg lhs-left rhs))
+   lhs
+   (keys lhs)))
+
+(deftest test-collapse-conjunction-on-some-reg
+  (let [collapse collapse-conjunction-on-some-reg]
+    (is (= {}
+           (collapse {:A true} {:A false})))
+    (is (= {:A true}
+           (collapse {:A true} {:A true})))
+    (is (= {:B false}
+           (collapse {:A true :B false} {:A false :B false})))
+    (is (= {:B false}
+           (collapse {:A true :B false} {:A nil :B false})))
+    (is (= {:B false}
+           (collapse {:A true :B false} {:B false})))
+    (is (= {:A true :B false}
+           (collapse {:A true :B false} {:A nil :B true})))
+    (is (= {:A true :B false :C true}
+           (collapse {:A true :B false :C true} {:A false :B true :C true})))))
+
+(defn find-min-ndf-ith [ndf i]
+  (assoc ndf i
+         (reduce collapse-conjunction-on-some-reg (nth ndf i) ndf)))
+
+(deftest test-find-min-ndf-ith
+  (is (= [{:A true :B false :C true} {:A true :C true}]
+         (find-min-ndf-ith
+          [{:A true :B false :C true} {:A true :B true :C true}]
+          1))))
+
+(defn find-min-ndf [ndf]
+  (assert (vector? ndf))
+  (let [min-ndf (reduce
+                 (fn [ndf _]
+                   (vec (distinct (reduce find-min-ndf-ith ndf (range (count ndf))))))
+                 ndf
+                 (range (count ndf)))]
+    (if (some empty? min-ndf) []
+        min-ndf)))
+
+(defn ndf->ins [result-reg tmp-reg ndf]
   (as-> [] ins
-    (set-false ins result-reg tmp-reg)
+    (false->ins ins result-reg tmp-reg)
     (reduce
-     (fn [acc reg-defs]
-       (conj (ensure-conjunctive acc reg-defs tmp-reg)
+     (fn [acc conjuntion]
+       (conj (conjuntion->ins acc conjuntion tmp-reg)
              {:op :or :lhs tmp-reg :rhs result-reg}))
      ins
-     vec-reg-defs)
+     ndf)
     (vec ins)))
 
 ; ############ Other
 
-(defn are-instructions-equiv [lhs rhs]
-  (let [used-regs (into #{}
-                        (concat
-                         (map :lhs lhs)
-                         (map :rhs lhs)
-                         (map :lhs rhs)
-                         (map :rhs rhs)))]
-    (every?
-     (fn [state]
-       (= (simulate lhs state)
-          (simulate rhs state)))
-     (subsets-true-false used-regs))))
+(defn regs->ndfs [regs]
+  (->> regs
+       subsets-true-false
+       comb/subsets
+       (map vec)
+       (map find-min-ndf)
+       distinct))
 
-(deftest test-are-instructions-equiv
-  (is (are-instructions-equiv
-       [{:op :not :lhs :J :rhs :J} {:op :not :lhs :J :rhs :J}]
-       []))
-  (is (not (are-instructions-equiv
-            [{:op :not :lhs :J :rhs :J} {:op :not :lhs :J :rhs :J}]
-            [{:op :not :lhs :J :rhs :J}])))
-  (is (are-instructions-equiv
-       [{:op :not :lhs :J :rhs :J} {:op :not :lhs :J :rhs :J}]
-       [])))
-
-(defn run-vec-reg-defs [program vec-reg-defs]
-  (let [instructions (ensure-any-true :J :T (vec vec-reg-defs))
+(defn run-ndf [program ndf]
+  (let [instructions (ndf->ins :J :T ndf)
         output (:output (run-instructions program instructions))]
     output))
+
+(defn solve-find-longest [regs]
+  (->> regs
+       regs->ndfs
+       (map #(ndf->ins :J :T %))
+       (map #(vector (count %) %))
+       (reduce (partial max-key first))))
+
+(defn solve-and-print-random [program regs]
+  (->> regs
+       regs->ndfs
+       rand-nth
+       (run-ndf program)
+       print-output))
+
+(defn solve-find-score [program regs]
+  (->> regs
+       regs->ndfs
+       (pmap #(reduce max (run-ndf program %)))
+       (filter #(> % 178))
+       first))
 
 (defn solve [s]
   (let [program (->> s code/str->memory code/init-program)
         input-regs [:A :B :C :D]]
-    ; (->> input-regs
-    ;      subsets-true-false
-    ;      comb/subsets
-    ;      (map #(ensure-any-true :J :T %))
-    ;      (map count)
-    ;      (reduce max))))
-
-    ; Out of memory; at most 15 instructions can be stored
-    ; (->> input-regs
-    ;      subsets-true-false
-    ;      comb/subsets
-    ;      rand-nth
-    ;      (run-vec-reg-defs program)
-    ;      print-output)))
-
-    (->> input-regs
-         subsets-true-false
-         comb/subsets
-         (pmap #(reduce max (run-vec-reg-defs program %)))
-         (filter #(> % 178))
-         first)))
+    (println "Longest:" (solve-find-longest input-regs))
+    (println "Random")
+    (solve-and-print-random program input-regs)
+    (println "Solution:" (solve-find-score program input-regs))))
 
 (defn -main
   [& _]
-  (println (solve (slurp *in*))))
+  (solve (slurp *in*)))

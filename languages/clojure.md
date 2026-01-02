@@ -47,6 +47,21 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
 ; 2 7
 ```
 
+```.clj
+; Produce a lazy sequence from given iterator Cartesian product (similar to
+; map/reduce/let combinations).
+(let [cur-y 12 cur-x 15 grid {11 {16 true}}]
+  (for [dy (range -1 2)
+        dx (range -1 2)
+        :let [y (+ cur-y dy)
+              x (+ cur-x dx)]
+        :when (and (<= 0 y 100)
+                   (<= 0 x 100))
+        :let [cell (get-in grid [y x])]
+        :when cell]
+    {:y y :x x}))
+```
+
 # Errors
 
 ```.clj
