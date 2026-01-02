@@ -39,7 +39,8 @@
 ; ############ Run
 
 (defn print-output [output]
-  (let [_ (assert (every? #(<= 10 % 127) output))
+  (let [largest (reduce max output)
+        _ (assert (< largest 128) (str largest))
         output-str (apply str (map char output))]
     (println output-str)))
 
@@ -60,7 +61,7 @@
 ; ############ Simple instructions
 
 (defn valid-input [reg]
-  (contains? #{:A :B :C :D :E :T :J} reg))
+  (contains? #{:A :B :C :D :E :F :G :H :I :T :J} reg))
 
 (defn valid-output [reg]
   (contains? #{:T :J} reg))
@@ -222,49 +223,27 @@
 
 ; ############ Other
 
-(defn regs->ins [regs]
-  (->> regs
-       subsets-true-false
-       comb/subsets
-       (map vec)
-       (map find-min-ndf)
-       (map #(ndf->ins :J :T %))
-       (remove #(< 15 (count %)))
-       distinct))
-
-(defn solve-find-score [program ins]
-  (->> ins
-       (pmap #(run-instructions program %))
-       (map :output)
-       (map #(reduce max %))
-       (filter #(> % 178))
-       first))
-
-(defn map-ins [ins regs]
-  (let [mapping (zipmap (map #(keyword (str (char %)))
-                             (range (int \A) (inc (int \Z))))
-                        regs)]
-    (vec
-     (map
-      (fn [{:keys [op lhs rhs]}]
-        {:op op
-         :lhs (get mapping lhs lhs)
-         :rhs (get mapping rhs rhs)})
-      ins))))
-
-(deftest test-map-ins
-  (is (= [{:op :not :lhs :B :rhs :D}]
-         (map-ins [{:op :not :lhs :A :rhs :B}] [:B :D]))))
-
 (defn solve [s]
   (let [program (->> s code/str->memory code/init-program)
-        base-regs [:A :B :C :D]
-        base-ins (regs->ins base-regs)]
-    (println "Num instructions:" (count base-ins))
-    (doseq [regs (comb/combinations [:A :B :C :D :E :F :G :H :I] (count base-regs))]
-      (println "Trying:" regs
-               "Result:" (solve-find-score program
-                                           (map #(map-ins % regs) base-ins))))))
+        ins (->> [;
+                  ; #####.###########
+                  ; #####.##.########
+                  ; #####.##..#..####
+                  ; #####.##...#..###
+                  ; #####.#.#########
+                  ; #####.#.#...#####
+                  ; #####.#..########
+                  ; #####..#.###..###
+                  ; #####...#########
+                  {:A false :B nil :C nil :D true :E nil :F nil :G nil :H nil :I nil}
+                  {:A nil :B nil :C false :D true :E nil :F nil :G nil :H true :I nil}
+                  {:A true :B false :C nil :D true :E nil :F nil :G nil :H nil :I nil}]
+                 find-min-ndf
+                 (ndf->ins :J :T))
+        _ (println (count ins))
+        result (:output (run-instructions program ins))
+        _ (print-output result)]
+    nil))
 
 (defn -main
   [& _]
