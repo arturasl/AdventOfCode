@@ -1,8 +1,3 @@
-```.sh
-lein new app d01_1
-rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgignore}
-```
-
 # Constants
 
 ```.clj
@@ -243,7 +238,17 @@ Short hand to attach a boolean equal to `true`:
 # Strings
 
 ```.clj
-parse-long "-2"
+(= -2 (parse-long "-2"))
+(= \P (char 80))
+(= 80 (int \P))
+```
+
+```.clj
+(:require [clojure.string :as str]
+(= "a,b" (str/join "," ["a" "b"])
+(= "a" (str/trim " a  "))
+(= {:x "123", :y "65"}
+   (zipmap [:x :y] (rest (re-matches #"^x=(\d+),y=(\d+)$" "x=123,y=65"))))
 ```
 
 # Math
@@ -298,6 +303,11 @@ parse-long "-2"
 ```
 
 ## Project Management
+
+```.sh
+lein new app d01_1
+rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgignore}
+```
 
 ```.clj
 ; Increase stack size to 1Gb in Lein project.clj.
