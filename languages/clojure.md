@@ -62,6 +62,13 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
     {:y y :x x}))
 ```
 
+```.clj
+; A simple way to define a `recur` context.
+(loop [a 5]
+  (if (zero? a) 0
+    (recur (dec a))
+```
+
 # Errors
 
 ```.clj
@@ -72,48 +79,51 @@ rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgig
 # Functions
 
 ```.clj
+(defn func [arg] (println arg))
+```
+
+```.clj
+; Private function.
+(defn- func [arg] (println arg))
+```
+
+```.clj
+; Multi arg function.
 (defn func
   ([onearg] (println "one arg variant"))
   ([one two] (println "two arg variant")))
 ```
 
-Anonymous function with first argument referred as `%` (or `%1`) and subsequent
-ones with `%n`.
-
 ```.clj
+; Anonymous function
 (#(println % %2) 1 2))
-```
-
-Is equivalent to
-
-```.clj
+; Same as
+(#(println %1 %2) 1 2))
+; Same as
 ((fn [a1 a2] (println a1 a2)) 1 2))
 ```
 
 ```.clj
+; Memorization.
 (def adder (memoize (fn [x y] (+ x y))))
 ```
 
 # Containers
 
 ```.clj
-(conj #{1 2 3} 4)
-#{1 3 2 9}
+(= #{1 3 2 9} (conj #{1 2 3} 4))
 ```
 
 ```.clj
-(contains? #{1 2 3} 1)
-true
+(true = (contains? #{1 2 3} 1))
 ```
 
 ```.clj
-(nth [2 9 10 1] 2)
-10
+(= 10 (nth [2 9 10 1] 2))
 ```
 
 ```.clj
-(empty? [])
-true
+(= true (empty? []))
 ```
 
 Convert vector into mutable (transient; as a performance optimization if
@@ -157,6 +167,12 @@ Map desctructuring by providing default values:
 (let [{:keys [name missing] :or {name 3 missing 2}} {:name 1 :other 2}]
   (println name)
   (println missing)))
+```
+
+# Threading
+
+```.clj
+(pmap inc [1 2 3]) ; Map in parallel.
 ```
 
 # Other
@@ -236,6 +252,17 @@ parse-long "-2"
 (= 3 (quot 10 3)) ; Floor(10 / 3).
 (= 10/3 (/ 10 3)) ; By default uses fractions.
 1234567N ; BigInt
+```
+
+# Input/Output
+
+```.clj
+(println (slurp *in*)) ; Read stdin into a variable.
+(println (slurp "file.in")) ; Read file into a variable.
+; Read file line by line.
+(with-open [rdr (clojure.java.io/reader "file.in")]
+    (doseq [line (line-seq rdr)]
+      (println line))))
 ```
 
 # Libraries
