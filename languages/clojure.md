@@ -35,8 +35,8 @@
 
 ```.clj
 ; Iterate over items returning nil
-(doseq [[i item] (map-indexed vector [9 8 7])
-  (println i ": " item)])
+(doseq [[i item] (map-indexed vector [9 8 7])]
+  (println i ": " item))
 ; 0 9
 ; 1 8
 ; 2 7
@@ -59,9 +59,13 @@
 
 ```.clj
 ; A simple way to define a `recur` context.
-(loop [a 5]
+(loop [a 3]
   (if (zero? a) 0
-    (recur (dec a))
+      (do (println a)
+          (recur (dec a)))))
+; 3
+; 2
+; 1
 ```
 
 # Errors
@@ -106,19 +110,79 @@
 # Containers
 
 ```.clj
-(= #{1 3 2 9} (conj #{1 2 3} 4))
+; Append to list/vector/map/set.
+(= (conj '(1 2 3) 4) '(4 1 2 3))
+(= (conj [1 2 3] 4) [1 2 3 4])
+(= (conj {:a 1 :b 2} [:c 3]) {:a 1 :b 2 :c 3})
+(= (conj #{1 2 3} 4) #{1 2 3 4})
+(= (into #{} [1 2 3]) #{1 2 3}) ; conj multiple items
 ```
 
 ```.clj
-(true = (contains? #{1 2 3} 1))
+; Insert.
+(= (assoc {:a 1 :b 2} :c 3) {:a 1 :b 2 :c 3})
+(= (assoc [1 2 3] 1 9) [1 9 3])
+(= (assoc-in [1 [2] 3] [1 0] 9) [1 [9] 3]) ; Dive into elements.
 ```
 
 ```.clj
-(= 10 (nth [2 9 10 1] 2))
+; Accessors.
+(= (:a {:a 1}) 1) ; Map specific
+(= (get {:a 1} :b :default-value) :default-value)
+(= (get [1 2] 1) 2)
+(= (get-in [1 [2]] [1 0]) 2) ; Dive into elements.
 ```
 
 ```.clj
-(= true (empty? []))
+; Delete
+(= (dissoc {:a 1 :b 2} :b) {:a 1}) ; Map specific
+```
+
+```.clj
+; Simple checks.
+(= (contains? #{1 2 3} 1) true)
+(= (empty? #{1 2 3}) false)
+(= (not-empty #{1 2 3}) #{1 2 3}) ; No question mark as returns collection itself.
+(= (= (count #{1 2 3}) 3) true)
+
+```
+
+```.clj
+; Update with a function
+(= (update {:a 1 :b 1} :a inc) {:a 2 :b 1})
+(= (update-in {:a {:b 1}} [:a :b] inc) {:a {:b 2}}) ; Dive into elements.
+```
+
+```.clj
+; Map specific
+(= (vals {:a 1 :b 2}) [1 2])
+(= (keys {:a 1 :b 2}) [:a :b])
+(= (update-vals {:a 1 :b 2} inc) {:a 2 :b 3})
+(= (select-keys {:a 1 :b 2} [:a]) {:a 1})
+(= (merge {:a 1 :b 2} {:b 3 :c 4}) {:a 1 :b 3 :c 4})
+(= (merge-with + {:a 1 :b 2} {:b 3 :c 4}) {:a 1 :b 5 :c 4})
+(= (group-by first [[:a 1] [:a 2] [:b 3]]) {:a [[:a 1] [:a 2]] :b [[:b 3]]}
+(= (frequencies [1 1 2 2 2]) {1 2 2 3}
+(= (zipmap (range) [3 4]) {0 3 1 4})
+```
+
+```.clj
+; Sequences
+(= (map inc [1 2 3]) [2 3 4])
+(= (remove even? [1 2 3]) [1 3])
+(= (filter even? [1 2 3]) [2])
+(= (reduce (fn [acc cur] (assoc acc cur (inc cur))) {} [1 2 3])
+   {1 2 2 3 3 4})
+(= (take 2 [1 2 3]) [1 2])
+(= (drop 1 [1 2 3]) [2 3])
+(= (rest [1 2 3]) [2 3])
+(= (distinct [1 1 3]) [1 3])
+(= (first [1 2 3]) 1)
+(= (second [1 2 3]) 2)
+(= (last [1 2 3]) 3)
+(= (nth [1 2 3] 1) 2)
+(= (sequence cat [[1 [2]] [3]]) [1 [2] 3]) ; Flatten single level
+(= (concat [1] [2 3] [4]) [1 2 3 4])
 ```
 
 Convert vector into mutable (transient; as a performance optimization if
@@ -138,10 +202,10 @@ structure by suffixing them with an exclamation `!` mark.
     (println b)
     (println rest)
     (println full))
-1
-2
-(3 4)
-[1 2 3 4]
+; 1
+; 2
+; (3 4)
+; [1 2 3 4]
 ```
 
 ```.clj
@@ -156,7 +220,7 @@ nil
 1
 ```
 
-Map desctructuring by providing default values:
+Map destructuring by providing default values:
 
 ```.clj
 (let [{:keys [name missing] :or {name 3 missing 2}} {:name 1 :other 2}]
@@ -164,47 +228,22 @@ Map desctructuring by providing default values:
   (println missing)))
 ```
 
+# Threading macros
+
+```.clj
+; Continuously send output as the last argument.
+; `->` same, but send as first argument
+; `as-> item alias` use `alias` to refer to the previous item.
+(->> "a\nb\n  \n\nc"
+     str/split-lines
+     (map str/trim)
+     (remove empty?))
+```
+
 # Threading
 
 ```.clj
 (pmap inc [1 2 3]) ; Map in parallel.
-```
-
-# Other
-
-```.clj
-((juxt * +) 2 3) ; [(+ 2 3) (* 2 3)]
-6 5
-```
-
-```.clj
-(defn add-coords [lhs rhs]
-    (merge-with + lhs rhs))
-```
-
-```.clj
-(= {:a 1 :c 3} (select-keys {:a 1 :b 2 :c 3} [:a :c]))
-```
-
-```.clj
-; Produce a map where keys are result of calling `:grp` on all items of second
-; argument and values are a vector with all agreeing items.
-(group-by :grp [{:grp 1} {:grp 1} {:grp 2}])
-{1 [{:grp 1} {:grp 1}], 2 [{:grp 2}]}
-```
-
-```.clj
-; Update given nested maps (first argument) by a path (second argument) to a
-; value (third argument).
-(assoc-in {:a {:b 1}} [:a :b] 2)
-{:a {:b 2}}
-```
-
-```.clj
-; Update given nested maps (first argument) by a path (second argument) to a
-; value received by applying a function (third argument)
-(println (update-in {:a {:b 1}} [:a :b] #(+ % 1))))
-{:a {:b 2}}
 ```
 
 # Metadata
@@ -254,7 +293,8 @@ Short hand to attach a boolean equal to `true`:
 # Math
 
 ```.clj
-(= 3 (quot 10 3)) ; Floor(10 / 3).
+(= (quot 10 3) 3) ; Floor(10 / 3).
+(= (mod 10 3) 1)
 (= 10/3 (/ 10 3)) ; By default uses fractions.
 1234567N ; BigInt
 ```
@@ -278,15 +318,15 @@ Short hand to attach a boolean equal to `true`:
 (:require [clojure.data.finger-tree :as finger])
 
 ; Operating on left side.
-(= 1 (first (finger/double-list 1 2 3)))
-(= [0 1 2 3] (finger/conjl (finger/double-list 1 2 3) 0))
-(= [2 3] (rest (finger/double-list 1 2 3)))
+(= (first (finger/double-list 1 2 3)) 1)
+(= (finger/conjl (finger/double-list 1 2 3) 0) [0 1 2 3])
+(= (rest (finger/double-list 1 2 3)) [2 3])
 
 ; Operating on right side.
-(= 3 (peek (finger/double-list 1 2 3)))
-(= [1 2 3 4] (conj (finger/double-list 1 2 3) 4))
-(= [1 2 3 4 5] (into (finger/double-list 1 2 3) [4 5]))
-(= [1 2] (pop (finger/double-list 1 2 3)))
+(= (peek (finger/double-list 1 2 3)) 3)
+(= (conj (finger/double-list 1 2 3) 4) [1 2 3 4])
+(= (into (finger/double-list 1 2 3) [4 5]) [1 2 3 4 5])
+(= (pop (finger/double-list 1 2 3)) [1 2])
 
 ; Ensure input did not change to sequence (e.g. `drop`).
 (assert (instance? clojure.data.finger_tree.DoubleList input))]
@@ -298,11 +338,19 @@ Short hand to attach a boolean equal to `true`:
 (:require [clojure.data.priority-map :refer [priority-map]])
 
 (priority-map state1 dist1 state2 dist2 state3 dist3)
-(= [:b 2] (peek (priority-map :a 5 :b 2 :c 9)))
-(= {:a 5 :c 9} (pop (priority-map :a 5 :b 2 :c 9)))
+(= (peek (priority-map :a 5 :b 2 :c 9)) [:b 2])
+(= (pop (priority-map :a 5 :b 2 :c 9)) {:a 5 :c 9})
 ```
 
-## Project Management
+## Permutations
+
+```.clj
+(:require [clojure.math.combinatorics :as combo])
+(= (combo/permutations (range 2)) [[0 1] [1 0]])
+(= (combo/subsets (range 2)) [[] [0] [1] [0 1]])
+```
+
+# Project Management
 
 ```.sh
 lein new app d01_1
