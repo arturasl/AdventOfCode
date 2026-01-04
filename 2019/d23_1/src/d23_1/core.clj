@@ -41,12 +41,6 @@
         {:network network :to attempt-idx :msg [-1]}))))
 
 (defn solve [s]
-  ; (let [network (init-network s 50)
-  ;       network (to->stdin-of-network network 0 [-1])
-  ;       _ (print-network network)
-  ;       [network [idx x y]] (read-msg-from-network network 0)]
-  ;   (println idx x y)
-  ;   (print-network network)))
   (loop [network (init-network s 50)
          its 0
          msgs-sent 0]
