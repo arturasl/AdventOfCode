@@ -294,6 +294,8 @@ Short hand to attach a boolean equal to `true`:
 
 ```.clj
 (= (quot 10 3) 3) ; Floor(10 / 3).
+(defn ceil-div [a b])
+    (+ (quot a b) (if (zero? (mod a b)) 0 1))
 (= (mod 10 3) 1)
 (= 10/3 (/ 10 3)) ; By default uses fractions.
 1234567N ; BigInt
