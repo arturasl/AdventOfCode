@@ -1,7 +1,22 @@
-# Constants
+# Variables
 
 ```.clj
-(def ^:const pi 3.14)
+(def a 123)
+(def ^:const pi 3.14) ; Constant.
+
+; Create new scoped variables.
+(let [a 1
+      b (inc a)
+      a b]
+  (println a b)
+
+; Dynamic binding (the `*var*` is convetion called earmuffins) -- thread local
+; variables that can be changed anywhere in the stack.
+(def ^:dynamic *a* 1)
+(defn inca [] (set! *a* (inc *a*)))
+(binding [*a* 2]
+  (inca)
+  (println *a*)) ; 2
 ```
 
 # Conditions
