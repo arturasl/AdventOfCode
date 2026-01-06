@@ -261,6 +261,55 @@ Map destructuring by providing default values:
 (pmap inc [1 2 3]) ; Map in parallel.
 ```
 
+```.clj
+; Delayed execution.
+; Execution function on first access (further access will return cached value).
+(def a (delay (Thread/sleep 1000) (rand-int 1000)))
+(Thread/sleep 1000)
+(println @a) ; Returns after 1 second.
+(println @a) ; Return same value immediately
+```
+
+```.clj
+; Background execution.
+(def a (future (Thread/sleep 1000) (rand-int 1000)))
+(Thread/sleep 1000)
+(println @a) ; Returns immediatly as 1s already passed.
+(println @a) ; Return same value immediately
+```
+
+```.clj
+; Eventual value.
+(def a (promise))
+(println (realized? a)) ; False no value yet.
+(deliver a 42)
+(println (realized? a)) ; True.
+(println @a) ; 42
+(deliver a 43) ; Further deliveries are no ops.
+(println @a) ; 42
+```
+
+```.clj
+; Atoms.
+(def a (atom 42))
+(reset! a 12) ; 12
+(swap! a dec) ; 11
+(println @a) ; 11
+; Note: compare and set does not implement value semantics (has to
+; be the same ref.
+(compare-and-set! a 12 15) ; false (no change as previous value is not 12)
+(compare-and-set! a 11 15) ; true (changed).
+; Execution function on changes to atom.
+(add-watch a :watch-key (fn [key ref old new] (println old)))
+; Only allow to set to values below 20.
+(set-validator! a #(< % 20))
+(reset! a 21) ; Exception.
+```
+
+```.clj
+In transaction deref (@ref) will read value of ref as it was at the start of transaction. Changes to ref will not retry read only transaction (stale read). To make sure newest val is read use (ensure ref).
+```
+
 # Metadata
 
 Attach arbitrary metadata to a `def` variable:
