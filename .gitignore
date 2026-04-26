@@ -16,6 +16,9 @@
 **/.lein-*
 **/.nrepl-port
 
+# Haskell
+**/dist-newstyle/
+
 # Rust
 **/debug/
 **/target/
