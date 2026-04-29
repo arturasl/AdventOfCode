@@ -11,3 +11,10 @@ let [x, _, _] = "abc" in print x -- a
 -- Several items from the top
 let a:b:xs = "abc" in print b -- b
 ```
+
+# Sequences
+
+```hs
+scanl (+) 0 [1..4] -- [0,1,3,6,10]
+foldl (+) 0 [1..4] -- 10
+```
