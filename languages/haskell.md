@@ -44,4 +44,5 @@ let a:b:xs = "abc" in print b -- b
 ```hs
 scanl (+) 0 [1..4] -- [0,1,3,6,10]
 foldl (+) 0 [1..4] -- 10
+[c | (c, i) <- zip "abcdef" [(0 :: Int) ..], even i] -- List comprehension.
 ```
