@@ -1,3 +1,30 @@
+# Functions
+
+```hs
+area :: Int -> Int -> Int
+area h, w = h * w
+-- Note that function can be called with less arguments to curry a new function
+-- e.g. ((area 2) 3) == 6
+```
+
+```hs
+-- Anonymous.
+\ h, w -> h * w
+```
+
+```hs
+-- Where statement.
+area :: Int -> Int -> Int
+area h, w = hw
+  where hw = h * w
+```
+
+# Errors
+
+```hs
+error $ "Could not convert: " ++ show l -- Throw.
+```
+
 # Matching
 
 ```hs
