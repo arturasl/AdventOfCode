@@ -1,6 +1,6 @@
 # Variables
 
-```.clj
+```clj
 (def a 123)
 (def ^:const pi 3.14) ; Constant.
 
@@ -21,26 +21,26 @@
 
 # Conditions
 
-```.clj
+```clj
 (if (<= 1 2) "ok" "nok")
 (when (<= 1 2) "ok") ; else defaults to nil.
 ```
 
-```.clj
+```clj
 (cond
   (< -1 0) "negative"
   (> -1 0) "positive"
   :else "zero")
 ```
 
-```.clj
+```clj
 (case (+ 2 3)
  3 "nok"
  5 "ok"
  "default")
 ```
 
-```.clj
+```clj
 ; Note that < can accept multiple arguments making it easier to create bound
 ; checks.
 (<= 0 y (dec height))
@@ -48,7 +48,7 @@
 
 # Loops
 
-```.clj
+```clj
 ; Iterate over items returning nil
 (doseq [[i item] (map-indexed vector [9 8 7])]
   (println i ": " item))
@@ -57,7 +57,7 @@
 ; 2 7
 ```
 
-```.clj
+```clj
 ; Produce a lazy sequence from given iterator Cartesian product (similar to
 ; map/reduce/let combinations).
 (let [cur-y 12 cur-x 15 grid {11 {16 true}}]
@@ -72,7 +72,7 @@
     {:y y :x x}))
 ```
 
-```.clj
+```clj
 ; A simple way to define a `recur` context.
 (loop [a 3]
   (if (zero? a) 0
@@ -85,30 +85,30 @@
 
 # Errors
 
-```.clj
+```clj
 (throw (ex-info "Unknown opcode" {:opcode opcode}))))
 (assert (not= 1 2) (str "Unknown opcode: " opcode))
 ```
 
 # Functions
 
-```.clj
+```clj
 (defn func [arg] (println arg))
 ```
 
-```.clj
+```clj
 ; Private function.
 (defn- func [arg] (println arg))
 ```
 
-```.clj
+```clj
 ; Multi arg function.
 (defn func
   ([onearg] (println "one arg variant"))
   ([one two] (println "two arg variant")))
 ```
 
-```.clj
+```clj
 ; Anonymous function
 (#(println % %2) 1 2))
 ; Same as
@@ -117,14 +117,14 @@
 ((fn [a1 a2] (println a1 a2)) 1 2))
 ```
 
-```.clj
+```clj
 ; Memorization.
 (def adder (memoize (fn [x y] (+ x y))))
 ```
 
 # Containers
 
-```.clj
+```clj
 ; Append to list/vector/map/set.
 (= (conj '(1 2 3) 4) '(4 1 2 3))
 (= (conj [1 2 3] 4) [1 2 3 4])
@@ -133,14 +133,14 @@
 (= (into #{} [1 2 3]) #{1 2 3}) ; conj multiple items
 ```
 
-```.clj
+```clj
 ; Insert.
 (= (assoc {:a 1 :b 2} :c 3) {:a 1 :b 2 :c 3})
 (= (assoc [1 2 3] 1 9) [1 9 3])
 (= (assoc-in [1 [2] 3] [1 0] 9) [1 [9] 3]) ; Dive into elements.
 ```
 
-```.clj
+```clj
 ; Accessors.
 (= (:a {:a 1}) 1) ; Map specific
 (= (get {:a 1} :b :default-value) :default-value)
@@ -148,12 +148,12 @@
 (= (get-in [1 [2]] [1 0]) 2) ; Dive into elements.
 ```
 
-```.clj
+```clj
 ; Delete
 (= (dissoc {:a 1 :b 2} :b) {:a 1}) ; Map specific
 ```
 
-```.clj
+```clj
 ; Simple checks.
 (= (contains? #{1 2 3} 1) true)
 (= (empty? #{1 2 3}) false)
@@ -162,13 +162,13 @@
 
 ```
 
-```.clj
+```clj
 ; Update with a function
 (= (update {:a 1 :b 1} :a inc) {:a 2 :b 1})
 (= (update-in {:a {:b 1}} [:a :b] inc) {:a {:b 2}}) ; Dive into elements.
 ```
 
-```.clj
+```clj
 ; Map specific
 (= (vals {:a 1 :b 2}) [1 2])
 (= (keys {:a 1 :b 2}) [:a :b])
@@ -181,7 +181,7 @@
 (= (zipmap (range) [3 4]) {0 3 1 4})
 ```
 
-```.clj
+```clj
 ; Sequences
 (= (map inc [1 2 3]) [2 3 4])
 (= (remove even? [1 2 3]) [1 3])
@@ -205,13 +205,13 @@ multiple changes are needed), insert a value into it and convert back
 to an immutable version. Note that most operations can act on transient
 structure by suffixing them with an exclamation `!` mark.
 
-```.clj
+```clj
 (println (persistent! (conj! (transient []) 1)))
 ```
 
 # Matching
 
-```.clj
+```clj
 (let [[a b & rest :as full] [1 2 3 4]]
     (println a)
     (println b)
@@ -223,13 +223,13 @@ structure by suffixing them with an exclamation `!` mark.
 ; [1 2 3 4]
 ```
 
-```.clj
+```clj
 (let [[a] []]
     (println a))
 nil
 ```
 
-```.clj
+```clj
 (let [{:keys [name]} {:name 1 :other 2}]
   (println name)))
 1
@@ -237,7 +237,7 @@ nil
 
 Map destructuring by providing default values:
 
-```.clj
+```clj
 (let [{:keys [name missing] :or {name 3 missing 2}} {:name 1 :other 2}]
   (println name)
   (println missing)))
@@ -245,7 +245,7 @@ Map destructuring by providing default values:
 
 # Threading macros
 
-```.clj
+```clj
 ; Continuously send output as the last argument.
 ; `->` same, but send as first argument
 ; `as-> item alias` use `alias` to refer to the previous item.
@@ -257,11 +257,11 @@ Map destructuring by providing default values:
 
 # Threading
 
-```.clj
+```clj
 (pmap inc [1 2 3]) ; Map in parallel.
 ```
 
-```.clj
+```clj
 ; Delayed execution.
 ; Execution function on first access (further access will return cached value).
 (def a (delay (Thread/sleep 1000) (rand-int 1000)))
@@ -270,7 +270,7 @@ Map destructuring by providing default values:
 (println @a) ; Return same value immediately
 ```
 
-```.clj
+```clj
 ; Background execution.
 (def a (future (Thread/sleep 1000) (rand-int 1000)))
 (Thread/sleep 1000)
@@ -278,7 +278,7 @@ Map destructuring by providing default values:
 (println @a) ; Return same value immediately
 ```
 
-```.clj
+```clj
 ; Eventual value.
 (def a (promise))
 (println (realized? a)) ; False no value yet.
@@ -289,7 +289,7 @@ Map destructuring by providing default values:
 (println @a) ; 42
 ```
 
-```.clj
+```clj
 ; Atoms.
 (def a (atom 42))
 (reset! a 12) ; 12
@@ -306,7 +306,7 @@ Map destructuring by providing default values:
 (reset! a 21) ; Exception.
 ```
 
-```.clj
+```clj
 In transaction deref (@ref) will read value of ref as it was at the start of transaction. Changes to ref will not retry read only transaction (stale read). To make sure newest val is read use (ensure ref).
 ```
 
@@ -314,7 +314,7 @@ In transaction deref (@ref) will read value of ref as it was at the start of tra
 
 Attach arbitrary metadata to a `def` variable:
 
-```.clj
+```clj
 (def a ^{:my-metadata 1} [1 2 3])
 
 (do
@@ -327,7 +327,7 @@ Attach arbitrary metadata to a `def` variable:
 
 Short hand to attach a boolean equal to `true`:
 
-```.clj
+```clj
 (def a ^:my-metadata [1 2 3])
 
 (do
@@ -340,13 +340,13 @@ Short hand to attach a boolean equal to `true`:
 
 # Strings
 
-```.clj
+```clj
 (= -2 (parse-long "-2"))
 (= \P (char 80))
 (= 80 (int \P))
 ```
 
-```.clj
+```clj
 (:require [clojure.string :as str]
 (= "a,b" (str/join "," ["a" "b"])
 (= "a" (str/trim " a  "))
@@ -356,7 +356,7 @@ Short hand to attach a boolean equal to `true`:
 
 # Math
 
-```.clj
+```clj
 (= (quot 10 3) 3) ; Floor(10 / 3).
 (defn ceil-div [a b])
     (+ (quot a b) (if (zero? (mod a b)) 0 1))
@@ -367,7 +367,7 @@ Short hand to attach a boolean equal to `true`:
 
 # Input/Output
 
-```.clj
+```clj
 (println (slurp *in*)) ; Read stdin into a variable.
 (println (slurp "file.in")) ; Read file into a variable.
 ; Read file line by line.
@@ -380,7 +380,7 @@ Short hand to attach a boolean equal to `true`:
 
 ## Double linked list
 
-```.clj
+```clj
 (:require [clojure.data.finger-tree :as finger])
 
 ; Operating on left side.
@@ -400,7 +400,7 @@ Short hand to attach a boolean equal to `true`:
 
 ## Priority queue
 
-```.clj
+```clj
 (:require [clojure.data.priority-map :refer [priority-map]])
 
 (priority-map state1 dist1 state2 dist2 state3 dist3)
@@ -410,7 +410,7 @@ Short hand to attach a boolean equal to `true`:
 
 ## Permutations
 
-```.clj
+```clj
 (:require [clojure.math.combinatorics :as combo])
 (= (combo/permutations (range 2)) [[0 1] [1 0]])
 (= (combo/subsets (range 2)) [[] [0] [1] [0 1]])
@@ -418,12 +418,12 @@ Short hand to attach a boolean equal to `true`:
 
 # Project Management
 
-```.sh
+```sh
 lein new app d01_1
 rm -v -rf d01_1/{doc/,CHANGELOG.md,LICENSE,README.md,resources/,.gitignore,.hgignore}
 ```
 
-```.clj
-; Increase stack size to 1Gb in Lein project.clj.
+```clj
+; Increase stack size to 1Gb in Lein projectclj.
 :jvm-opts ["-Xss1g"]
 ```

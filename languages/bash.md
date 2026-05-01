@@ -1,4 +1,4 @@
-```.bash
+```bash
 # Split string by a single character delimiter.
 str='a; b;;c ' # Note that last delimiter is ignored, e.g. same as 'a; b;;c ;'.
 delim=';'
