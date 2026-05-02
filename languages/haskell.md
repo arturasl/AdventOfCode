@@ -23,6 +23,12 @@ area h, w = hw
 
 ```hs
 error $ "Could not convert: " ++ show l -- Throw.
+
+-- For an intermediate printf debugging.
+import Debug.Trace (traceShow)
+
+myfn :: String -> Int
+myfn s = traceShow s $ length s -- Print s and return the value.
 ```
 
 # Matching
