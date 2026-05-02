@@ -21,10 +21,32 @@ area h, w = h * w
 ```
 
 ```hs
--- Where statement.
-area :: Int -> Int -> Int
-area h, w = hw
-  where hw = h * w
+-- Where statement with guards.
+toTpl :: Int -> Int -> (Int, Int)
+toTpl a, b
+  | (0, _) <- ab = error "Zero as a not allowed"
+  | otherwise ab
+  where ab = (a, b)
+```
+
+# Strings
+
+```hs
+import Text.Regex.TDFA ((=~))
+"a" =~ ".*" :: Bool -- Returns whether string matched regex
+-- Returns:
+-- Unmatched on left side.
+-- Unmatched on right side.
+-- Matched ($0)
+-- Groups
+"a" =~ "(.*)" :: (String, String, String, [String])
+-- Helper:
+matchGroups :: T.Text -> T.Text -> [T.Text]
+matchGroups r s
+  | T.null match = error $ "Could not match `" ++ T.unpack s ++ "`"
+  | otherwise = groups
+  where
+    (_, match, _, groups) = s =~ r :: (T.Text, T.Text, T.Text, [T.Text])
 ```
 
 # Errors
@@ -34,7 +56,6 @@ error $ "Could not convert: " ++ show l -- Throw.
 
 -- For an intermediate printf debugging.
 import Debug.Trace (traceShow)
-
 myfn :: String -> Int
 myfn s = traceShow s $ length s -- Print s and return the value.
 ```
