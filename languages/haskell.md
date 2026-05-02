@@ -81,3 +81,13 @@ scanl (+) 0 [1..4] -- [0,1,3,6,10]
 foldl (+) 0 [1..4] -- 10
 [c | (c, i) <- zip "abcdef" [(0 :: Int) ..], even i] -- List comprehension.
 ```
+
+```hs
+import qualified Data.Map as M
+M.empty -- Create empty
+M.null M.empty -- Check if empty
+(M.fromList [("a", 1)]) M.! "a" -- Lookup, throwing if does not exist
+M.findWithDefault 0 "a" M.empty -- Lookup, using default of 0
+M.lookup "a" M.empty -- Lookup, returning Nothing if does not exist
+M.empty `M.union` M.empty -- Merge two maps (M.unionWith for custom merging function)
+```
