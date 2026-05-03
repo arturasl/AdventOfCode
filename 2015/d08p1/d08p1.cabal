@@ -19,3 +19,7 @@ executable d01p1
       regex-tdfa
     hs-source-dirs:   app
     default-language: Haskell2010
+    default-extensions:
+        OverloadedStrings
+        PatternSynonyms
+        TupleSections

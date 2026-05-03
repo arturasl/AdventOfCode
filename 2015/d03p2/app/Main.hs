@@ -1,15 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ViewPatterns #-}
-
 module Main where
 
 import qualified Data.Set as Set
+import Data.Text (pattern (:<))
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-
-pattern (:<) :: Char -> T.Text -> T.Text
-pattern c :< rest <- (T.uncons -> Just (c, rest))
 
 nextPos :: Char -> (Int, Int) -> (Int, Int)
 nextPos '>' (cy, cx) = (cy, cx + 1)
