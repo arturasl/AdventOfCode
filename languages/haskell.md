@@ -31,7 +31,9 @@ toTpl a, b
 
 # Strings
 
-```hs
+## Regex
+
+````hs
 import Text.Regex.TDFA ((=~))
 "a" =~ ".*" :: Bool -- Returns whether string matched regex
 -- Returns:
@@ -47,7 +49,17 @@ matchGroups r s
   | otherwise = groups
   where
     (_, match, _, groups) = s =~ r :: (T.Text, T.Text, T.Text, [T.Text])
-```
+
+## Text
+
+```hs
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+import Data.Text (pattern Empty, pattern (:<))
+import qualified Data.Text as T
+````
+
+````
 
 # Errors
 
@@ -58,7 +70,7 @@ error $ "Could not convert: " ++ show l -- Throw.
 import Debug.Trace (traceShow)
 myfn :: String -> Int
 myfn s = traceShow s $ length s -- Print s and return the value.
-```
+````
 
 # Matching
 
