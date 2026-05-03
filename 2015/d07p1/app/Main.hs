@@ -97,7 +97,13 @@ collapse (r : rs) (Ctx r_to_deps r_to_op r_to_int) =
   collapse (M.keys solved ++ rs) (Ctx new_r_to_deps r_to_op new_r_to_int)
   where
     attempt = S.toList . fromMaybe S.empty $ M.lookup r r_to_deps
-    attempt_w_op = map (\a -> (a, fromJust $ M.lookup a r_to_op)) attempt
+    attempt_w_op =
+      mapMaybe
+        ( \a -> case M.lookup a r_to_op of
+            Just op -> Just (a, op)
+            _ -> Nothing
+        )
+        attempt
     solved = maybeEvalAll attempt_w_op r_to_int
     new_r_to_int = r_to_int `M.union` solved
     new_r_to_deps = M.insert r S.empty r_to_deps
@@ -118,8 +124,8 @@ createRDeps els = M.fromListWith S.union snd_set
     pairs = concatMap (\(r, o) -> map (,r) $ op_to_vars o) els
     snd_set = map (second S.singleton) pairs
 
-solve :: [T.Text] -> Int
-solve lns = fromJust $ M.lookup "a" final_r_to_int
+solve :: [T.Text] -> Maybe Int
+solve lns = traceShow final_r_to_int $ M.lookup "a" final_r_to_int
   where
     parsed = map parseIns lns
     r_to_op = M.fromList parsed
