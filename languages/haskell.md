@@ -74,6 +74,26 @@ let [x, _, _] = "abc" in print x -- a
 let a:b:xs = "abc" in print b -- b
 ```
 
+# Types
+
+```hs
+data Point = Create Float Float deriving (Show, Eq)
+--    ^       ^                           ^-- type classes.
+--    |       |--- value constructor -- function that will create a Point,
+--    |             e.g. (Create 1 2) :: Point. Can also be used to pattern
+--    |             match with (Create _ x)
+--    --- type constructor (without parameters)
+data Car = Car {name :: String, mileage :: Int} -- Record type.
+-- let c = Car {name = "abc", mileage = 1}
+-- (name c) == "abc"
+data Point a = Create a a
+--         ^-- type constructor with single parameter
+data (Ord a) => Point a = Create a a
+--        ^-- type class cosntraint
+data Weekend = Saturday | Sunday deriving (Bounded, Enum, Eq, Ord, Show)
+type MyWeekend = Weekend -- type synonym / alias.
+```
+
 # Sequences
 
 ```hs
