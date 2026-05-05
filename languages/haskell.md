@@ -57,10 +57,17 @@ matchGroups r s
 {-# LANGUAGE PatternSynonyms #-}
 import Data.Text (pattern Empty, pattern (:<))
 import qualified Data.Text as T
+
+T.lines "a\nb\n"
+T.words "a b n" -- ["a", "b", "c"]
+T.strip "  b  " -- "b"
+T.null "" -- True (is empty)
+T.empty -- "" (empty)
+T.unpack $ T.pack "abc" -- String to text and back
+"a" T.isInfixOf "bab" -- True, "a" is found in "bab"
 ````
 
-````
-
+````hs
 # Errors
 
 ```hs
@@ -111,6 +118,14 @@ type MyWeekend = Weekend -- type synonym / alias.
 ```hs
 scanl (+) 0 [1..4] -- [0,1,3,6,10]
 foldl (+) 0 [1..4] -- 10
+[1, 2, 3] !! 1 -- 2 (first element)
+take 2 [1, 2, 3] -- [1, 2]
+head [1, 2, 3] -- 1
+length [1, 2, 3] -- 3
+List.concat [[1, 2, 3], [4]] -- [1, 2, 3, 4]
+[1, 2, 3] ++ [4] -- [1, 2, 3, 4]
+any even [1, 2, 3] -- True
+filter even [1, 2, 3] -- [2]
 [c | (c, i) <- zip "abcdef" [(0 :: Int) ..], even i] -- List comprehension.
 ```
 
