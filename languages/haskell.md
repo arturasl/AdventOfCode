@@ -126,6 +126,8 @@ List.concat [[1, 2, 3], [4]] -- [1, 2, 3, 4]
 [1, 2, 3] ++ [4] -- [1, 2, 3, 4]
 any even [1, 2, 3] -- True
 filter even [1, 2, 3] -- [2]
+iterate inc 0 -- Create an infinite list by applying inc to the previous result.
+tails [1, 2, 3] -- [[1, 2, 3], [2, 3], [3]] Create all suffixes.
 [c | (c, i) <- zip "abcdef" [(0 :: Int) ..], even i] -- List comprehension.
 ```
 

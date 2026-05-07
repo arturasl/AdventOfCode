@@ -1,6 +1,7 @@
 module Main where
 
 import qualified Data.Char as Char
+import Data.Text (pattern (:<))
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Debug.Trace (traceShow)
@@ -9,10 +10,10 @@ trc :: (Show a) => a -> a
 trc x = traceShow x x
 
 hasIncreasingStraight :: T.Text -> Bool
-hasIncreasingStraight s = any (\(a, b, c) -> isNext a b && isNext b c) $ zip3 chrs (tail chrs) (drop 2 chrs)
+hasIncreasingStraight s = any isStraight $ T.tails s
   where
-    chrs = T.unpack s
-    isNext a b = Char.ord a + 1 == Char.ord b
+    isStraight (a :< b :< c :< _) = succ a == b && succ b == c
+    isStraight _ = False
 
 noProhibitedChars :: T.Text -> Bool
 noProhibitedChars s = not $ T.any (`T.elem` "iol") s
@@ -37,11 +38,8 @@ nextPwd s = snd $ T.foldr inc (1, "") s
             then (1, T.cons 'a' res)
             else (0, T.cons (Char.chr nxt) res)
 
-nextPwds :: T.Text -> [T.Text]
-nextPwds s = s : nextPwds (nextPwd s)
-
 nextOkPwd :: T.Text -> T.Text
-nextOkPwd s = head . dropWhile (not . isValid) $ nextPwds s
+nextOkPwd s = head . dropWhile (not . isValid) $ iterate nextPwd s
 
 solve :: [T.Text] -> [T.Text]
 solve = map (nextOkPwd . nextPwd)
