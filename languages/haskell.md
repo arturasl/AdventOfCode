@@ -25,7 +25,7 @@ area h, w = h * w
 toTpl :: Int -> Int -> (Int, Int)
 toTpl a, b
   | (0, _) <- ab = error "Zero as a not allowed"
-  | otherwise ab
+  | otherwise = ab
   where ab = (a, b)
 ```
 
