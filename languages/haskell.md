@@ -59,7 +59,8 @@ matchGroups r s
   where
     (_, match, _, groups) = s =~ r :: (T.Text, T.Text, T.Text, [T.Text])
 -- Getting all matches and their subgroups:
-txt =~ ("([[:alpha:]]*): ([[:digit:]]*),?" :: T.Text) :: [[T.Text]]
+[ (k, v) | (_ : k : v : _) <- (other =~ ("([a-z]+): ([0-9]+)" :: T.Text) :: [[T.Text]]) ]
+```
 
 ## Text
 

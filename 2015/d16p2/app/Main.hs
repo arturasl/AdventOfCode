@@ -42,7 +42,9 @@ parseLine t = Sue {idx = tToI idx, items}
         [i, o] -> (i, o)
         _ -> error "Should not happen"
     tToI s = (read $ T.unpack s) :: Int
-    items = Map.fromList $ map (\l -> (l !! 1, tToI $ l !! 2)) (other =~ ("([[:alpha:]]*): ([[:digit:]]*),?" :: T.Text) :: [[T.Text]])
+    items =
+      Map.fromList
+        [(k, tToI v) | (_ : k : v : _) <- (other =~ ("([a-z]+): ([0-9]+)" :: T.Text) :: [[T.Text]])]
 
 solve :: [T.Text] -> Int
 solve lns
