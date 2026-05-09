@@ -29,6 +29,15 @@ toTpl a, b
   where ab = (a, b)
 ```
 
+# Conditions
+
+```hs
+case "a" of
+  "a" -> 1
+  "b" -> 2
+  _ -> error ":("
+```
+
 # Strings
 
 ## Regex
