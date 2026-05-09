@@ -54,10 +54,12 @@ import Text.Regex.TDFA ((=~))
 -- Helper:
 matchGroups :: T.Text -> T.Text -> [T.Text]
 matchGroups r s
-  | T.null match = error $ "Could not match `" ++ T.unpack s ++ "`"
+  | T.null match = error $ "Could not match `" ++ T.unpack s ++ "`, re: `" ++ T.unpack r ++ "`"
   | otherwise = groups
   where
     (_, match, _, groups) = s =~ r :: (T.Text, T.Text, T.Text, [T.Text])
+-- Getting all matches and their subgroups:
+txt =~ ("([[:alpha:]]*): ([[:digit:]]*),?" :: T.Text) :: [[T.Text]]
 
 ## Text
 
