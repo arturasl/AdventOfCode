@@ -1,10 +1,10 @@
 module Main where
 
-import qualified Data.Bifunctor as Bi
-import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
-import qualified Data.Text as T
-import qualified Data.Text.IO as TIO
+import Data.Bifunctor qualified as Bi
+import Data.Map.Strict qualified as Map
+import Data.Set qualified as Set
+import Data.Text qualified as T
+import Data.Text.IO qualified as TIO
 import Debug.Trace (traceShow)
 import System.IO (BufferMode (NoBuffering), hSetBuffering, stderr)
 
@@ -32,8 +32,10 @@ applyRule t (sr, rp) = Set.fromList oks
 applyRules :: T.Text -> [(T.Text, T.Text)] -> Set.Set T.Text
 applyRules t rules = Set.unions $ map (applyRule t) rules
 
+-- CRnSiRnFYCaRnFArArFArAl
 search' :: Set.Set (Int, T.Text) -> [(T.Text, T.Text)] -> Ctx -> Ctx
 search' origSearchSpace rules ctx@Ctx {memo, its}
+  | its > 1000000 = ctx
   | Set.null origSearchSpace = ctx
   | T.null t || "e" `T.isInfixOf` t = search' searchSpace rules Ctx {memo, its = nextIts}
   | otherwise = search' nextSearchSpace rules Ctx {memo = nextMemo, its = nextIts}
@@ -41,7 +43,7 @@ search' origSearchSpace rules ctx@Ctx {memo, its}
     t = snd $ Set.elemAt 0 origSearchSpace
     searchSpace = Set.drop 1 origSearchSpace
     nextIts =
-      ( if its `mod` 1000 == 0
+      ( if its `mod` 10000 == 0
           then
             traceShow
               ( "its: "
@@ -73,7 +75,7 @@ search t rules = search' (Set.singleton (0, t)) rules $ Ctx {memo = Map.singleto
 
 solve :: [T.Text] -> Int
 -- solve lns = traceShow (applyRules "CaCaCaCaCa" swappedRules) 0
-solve lns = traceShow (its resultCtx) (memo resultCtx Map.! "e")
+solve lns = traceShow (its resultCtx) (Map.findWithDefault (-1) "e" $ memo resultCtx)
   where
     (ruleStrs, molecule) = (init lns, last lns)
     rules = map parseRule ruleStrs
