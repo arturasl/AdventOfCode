@@ -1,14 +1,17 @@
 module Main where
 
 import qualified Data.Bifunctor as Bi
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Debug.Trace (traceShow)
+import System.IO (BufferMode (NoBuffering), hSetBuffering, stderr)
 
 trc :: (Show a) => a -> a
 trc x = traceShow x x
+
+data Ctx = Ctx {memo :: !(Map.Map T.Text Int), its :: !Int} deriving (Show)
 
 parseRule :: T.Text -> (T.Text, T.Text)
 parseRule r
@@ -29,29 +32,57 @@ applyRule t (sr, rp) = Set.fromList oks
 applyRules :: T.Text -> [(T.Text, T.Text)] -> Set.Set T.Text
 applyRules t rules = Set.unions $ map (applyRule t) rules
 
-search' :: [(T.Text, Int)] -> [(T.Text, T.Text)] -> Map.Map T.Text Int -> Map.Map T.Text Int
-search' [] _ memo = memo
-search' ((t, dist) : searchSpace) rules memo
-  | T.null t || "e" `T.isInfixOf` t = search' searchSpace rules memo
-  | otherwise = search' nextSearchSpace rules nextMemo
+search' :: Set.Set (Int, T.Text) -> [(T.Text, T.Text)] -> Ctx -> Ctx
+search' origSearchSpace rules ctx@Ctx {memo, its}
+  | Set.null origSearchSpace = ctx
+  | T.null t || "e" `T.isInfixOf` t = search' searchSpace rules Ctx {memo, its = nextIts}
+  | otherwise = search' nextSearchSpace rules Ctx {memo = nextMemo, its = nextIts}
   where
+    t = snd $ Set.elemAt 0 origSearchSpace
+    searchSpace = Set.drop 1 origSearchSpace
+    nextIts =
+      ( if its `mod` 1000 == 0
+          then
+            traceShow
+              ( "its: "
+                  ++ show its
+                  ++ ", space: "
+                  ++ show (length searchSpace)
+                  ++ ", memo: "
+                  ++ show (length memo)
+                  ++ ", ans: "
+                  ++ show (Map.findWithDefault (-1) "e" memo)
+                  ++ ", longest: "
+                  ++ show (maximum . map T.length $ Map.keys memo)
+                  ++ ", shortest: "
+                  ++ show (minimum . map (\k -> (T.length k, k)) $ Map.keys memo)
+                  ++ ", furthest: "
+                  ++ show (maximum $ Map.elems memo)
+              )
+          else id
+      )
+        $ its + 1
+    dist = memo Map.! t
     nextTs = applyRules t rules
-    addSearchSpace = filter (\(nt, nd) -> Map.findWithDefault (nd + 1) nt memo >= nd) $ map (,dist + 1) (Set.toList nextTs)
+    addSearchSpace = filter (\(nt, nd) -> nd < Map.findWithDefault (nd + 1) nt memo) $ map (,dist + 1) (Set.toList nextTs)
     nextMemo = Map.fromList addSearchSpace `Map.union` memo
-    nextSearchSpace = searchSpace ++ addSearchSpace
+    nextSearchSpace = Set.fromList (map (\(f, _) -> (T.length f, f)) addSearchSpace) `Set.union` searchSpace
 
-search :: T.Text -> [(T.Text, T.Text)] -> Map.Map T.Text Int
-search t rules = search' [(t, 0)] rules $ Map.singleton t 0
+search :: T.Text -> [(T.Text, T.Text)] -> Ctx
+search t rules = search' (Set.singleton (0, t)) rules $ Ctx {memo = Map.singleton t 0, its = 0}
 
 solve :: [T.Text] -> Int
-solve lns = traceShow (Map.take 10 $ search molecule swappedRules) 0
+-- solve lns = traceShow (applyRules "CaCaCaCaCa" swappedRules) 0
+solve lns = traceShow (its resultCtx) (memo resultCtx Map.! "e")
   where
     (ruleStrs, molecule) = (init lns, last lns)
     rules = map parseRule ruleStrs
     swappedRules = map (\(l, r) -> (r, l)) rules
+    resultCtx = search molecule swappedRules
 
 main :: IO ()
 main = do
+  hSetBuffering stderr NoBuffering
   contents <- TIO.getContents
   let lns = filter (not . T.null) . map T.strip $ T.lines contents
   print $ solve lns
