@@ -31,7 +31,7 @@ inHouse primes h = (10 *) . calcDivisorSum 1 $ getPrimeDivisors primes h
 solve :: T.Text -> Int
 solve ln = succ . length $ takeWhile ((traget >) . inHouse primes) [1 ..]
   where
-    primes = foldl (\cur n -> cur ++ ([n | not (any (\p -> n `mod` p == 0) cur)])) [2] [3 .. 100000] :: [Int]
+    primes = foldl (\cur n -> ([n | not (any (\p -> n `mod` p == 0) cur)]) ++ cur) [2] [3 .. 100000] :: [Int]
     traget = read $ T.unpack ln :: Int
 
 main :: IO ()
