@@ -8,11 +8,11 @@ import Debug.Trace (traceShow)
 trc :: (Show a) => a -> a
 trc x = traceShow x x
 
-calcDivisorSum :: [(Int, Int)] -> Int
-calcDivisorSum [] = 1
-calcDivisorSum ((p, n) : xs) = snd $ foldr (\_ (po, ac) -> (po * p, ac + po * other)) (1, 0) [0 .. n]
+calcDivisorSum :: Int -> [(Int, Int)] -> Int
+calcDivisorSum acc [] = acc
+calcDivisorSum acc ((p, n) : xs) = calcDivisorSum prefix xs
   where
-    other = calcDivisorSum xs
+    prefix = snd $ foldr (\_ (po, ac) -> (po * p, ac + po * acc)) (1, 0) [0 .. n]
 
 getPrimeDivisors' :: [Int] -> Int -> [Int]
 getPrimeDivisors' [] _ = error "Not enough primes"
@@ -26,7 +26,7 @@ getPrimeDivisors :: [Int] -> Int -> [(Int, Int)]
 getPrimeDivisors primes n = map (\l -> (head l, length l)) . List.group $ getPrimeDivisors' primes n
 
 inHouse :: [Int] -> Int -> Int
-inHouse primes h = (10 *) . calcDivisorSum $ getPrimeDivisors primes h
+inHouse primes h = (10 *) . calcDivisorSum 1 $ getPrimeDivisors primes h
 
 solve :: T.Text -> Int
 solve ln = succ . length $ takeWhile ((traget >) . inHouse primes) [1 ..]
