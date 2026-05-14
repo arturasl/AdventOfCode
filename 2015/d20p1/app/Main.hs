@@ -12,7 +12,7 @@ calcDivisorSum :: Int -> [(Int, Int)] -> Int
 calcDivisorSum acc [] = acc
 calcDivisorSum acc ((p, n) : xs) = calcDivisorSum prefix xs
   where
-    prefix = snd $ foldr (\_ (po, ac) -> (po * p, ac + po * acc)) (1, 0) [0 .. n]
+    prefix = acc * ((1 - p ^ (n + 1)) `div` (1 - p))
 
 getPrimeDivisors' :: [Int] -> Int -> [Int]
 getPrimeDivisors' [] _ = error "Not enough primes"
@@ -31,7 +31,7 @@ inHouse primes h = (10 *) . calcDivisorSum 1 $ getPrimeDivisors primes h
 solve :: T.Text -> Int
 solve ln = succ . length $ takeWhile ((traget >) . inHouse primes) [1 ..]
   where
-    primes = foldl (\cur n -> ([n | not (any (\p -> n `mod` p == 0) cur)]) ++ cur) [2] [3 .. 100000] :: [Int]
+    primes = reverse $ foldl (\cur n -> [n | not (any (\p -> n `mod` p == 0) cur)] ++ cur) [2] [3 .. 100000] :: [Int]
     traget = read $ T.unpack ln :: Int
 
 main :: IO ()
