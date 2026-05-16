@@ -117,6 +117,11 @@ data Point = Create Float Float deriving (Show, Eq)
 data Car = Car {name :: String, mileage :: Int} -- Record type.
 -- let c = Car {name = "abc", mileage = 1}
 -- (name c) == "abc"
+
+-- Pattern match and update single field.
+update :: Car -> Car
+update ctx@Car {name = curName} = ctx(name = curName ++ "hello")
+
 data Point a = Create a a
 --         ^-- type constructor with single parameter
 data (Ord a) => Point a = Create a a
