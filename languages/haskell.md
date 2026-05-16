@@ -1,9 +1,3 @@
-# Types
-
-```hs
-fromEnum True -- enum to int
-```
-
 # Functions
 
 ```hs
@@ -106,6 +100,18 @@ let a:b:xs = "abc" in print b -- b
 ```
 
 # Types
+
+## Numeric
+
+```hs
+fromEnum True -- enum to int
+a :: Int -- A simple int (goes to negative on overflow).
+maxBound :: Int -- Give top bound for "bounded" types (Int, Enum, Char, etc.)
+a :: Integer -- Arbitrary length integers
+toInteger 1 -- Convert normal integer to arbitrary length one.
+```
+
+## Record
 
 ```hs
 data Point = Create Float Float deriving (Show, Eq)

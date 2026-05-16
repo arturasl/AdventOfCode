@@ -1,21 +1,17 @@
 module Main where
 
+import Data.Bits qualified as Bits
 import Data.List qualified as List
-import Data.Maybe (fromMaybe)
 import Data.Ord qualified as O
-import Data.Sequence qualified as Seq
 import Data.Text qualified as T
 import Data.Text.IO qualified as TIO
 import Debug.Trace (traceShow)
 
-splitable :: [Int] -> Bool
-splitable els = even s && r `Seq.index` (s `div` 2)
+splitable2 :: [Int] -> Bool
+splitable2 els = even s && r `Bits.testBit` (s `div` 2)
   where
     s = sum els
-    startMsk = Seq.fromList (True : replicate s False)
-    nextMsk :: Seq.Seq Bool -> Int -> Seq.Seq Bool
-    nextMsk msk el = Seq.mapWithIndex (\i b -> b || fromMaybe False ((i - el) `Seq.lookup` msk)) msk
-    r = foldl nextMsk startMsk els
+    r = foldl (\msk el -> msk Bits..|. (msk `Bits.shift` el)) (1 :: Integer) els
 
 data El = El {alreadyUsed :: [Int], sAlreadyUsed :: Int, canUse :: [Int], sCanUseAndSkipped :: Int, skipped :: [Int]}
 
@@ -30,7 +26,7 @@ find' (El {alreadyUsed = au, sAlreadyUsed = sau, canUse = cu, sCanUseAndSkipped 
   | createKey au >= r = find' searchSpace r
   | 2 * sau > ss = find' searchSpace r
   | 2 * sau == ss =
-      if splitable (s ++ cu)
+      if splitable2 (s ++ cu)
         then
           traceShow (show (createKey au) ++ ", au: " ++ show au ++ ", cu: " ++ show cu ++ ", s: " ++ show s)
             . find' searchSpace
