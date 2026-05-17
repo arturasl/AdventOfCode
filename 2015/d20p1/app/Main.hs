@@ -31,11 +31,11 @@ inHouse primes h = (10 *) . calcDivisorSum 1 $ getPrimeDivisors primes h
 solve :: T.Text -> Int
 solve ln = succ . length $ takeWhile ((traget >) . inHouse primes) [1 ..]
   where
-    primes = reverse $ foldl (\cur n -> [n | not (any (\p -> n `mod` p == 0) cur)] ++ cur) [2] [3 .. 100000] :: [Int]
+    primes = reverse $ foldl (\cur n -> [n | not (any (\p -> n `mod` p == 0) cur)] ++ cur) [2] [3 .. 10000] :: [Int]
     traget = read $ T.unpack ln :: Int
 
 main :: IO ()
 main = do
   contents <- TIO.getContents
   let lns = filter (not . T.null) . map T.strip $ T.lines contents
-  print $ map solve lns
+  mapM_ (print . solve) lns

@@ -20,4 +20,4 @@ main :: IO ()
 main = do
   contents <- TIO.getContents
   let lns = filter (not . T.null) . map T.strip $ T.lines contents
-  print $ map solve lns
+  mapM_ (print . solve) lns

@@ -24,14 +24,14 @@ shortest n state edges ctx
     addToVisited v i = v Bits..|. (1 `Bits.shiftL` i)
     visitedAfter = addToVisited visited cur
     didVisitAll = visitedAfter == (1 `Bits.shiftL` n) - 1
-    wasHereBetter = Map.findWithDefault maxBound state (memo ctx) <= dist ctx
+    wasHereBetter = Map.findWithDefault minBound state (memo ctx) >= dist ctx
     nextMemo = Map.insert state (dist ctx) (memo ctx)
     outEdges = Map.findWithDefault [] cur edges
     isNotVisited to = visitedAfter Bits..&. addToVisited 0 to == 0
     unvisitedOutEdges = filter (\Edge {to, cost = _} -> isNotVisited to) outEdges
     bestForEdge Edge {to, cost} actx =
       let s = shortest n (visitedAfter, to) edges actx {dist = dist ctx + cost, its = succ $ its actx}
-       in s {rdist = min (rdist s) (rdist actx)}
+       in s {rdist = max (rdist s) (rdist actx)}
     nextBest = foldr bestForEdge (ctx {memo = nextMemo}) unvisitedOutEdges
 
 solve :: [T.Text] -> Int
@@ -51,7 +51,7 @@ solve lns = traceShow (T.unpack "Its: " ++ show (its resultCtx)) $ rdist resultC
     zeroToAll = map (\to -> (0, Edge {to = to, cost = 0})) [1 .. Map.size cityToIdx]
     edges = Map.fromListWith (++) $ map (\(f, e) -> (f, [e])) (fwdEdges ++ backEdges ++ zeroToAll)
     numNodes = succ $ Map.size cityToIdx
-    resultCtx = shortest numNodes (0, 0) edges Ctx {dist = 0, rdist = maxBound, memo = Map.empty, its = 0}
+    resultCtx = shortest numNodes (0, 0) edges Ctx {dist = 0, rdist = minBound, memo = Map.empty, its = 0}
 
 main :: IO ()
 main = do

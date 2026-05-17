@@ -124,8 +124,8 @@ createRDeps els = M.fromListWith S.union snd_set
     pairs = concatMap (\(r, o) -> map (,r) $ op_to_vars o) els
     snd_set = map (second S.singleton) pairs
 
-solve :: [T.Text] -> Maybe Int
-solve lns = traceShow final_r_to_int $ M.lookup "a" final_r_to_int
+solve :: [T.Text] -> Int
+solve lns = traceShow final_r_to_int $ final_r_to_int M.! "a"
   where
     parsed =
       map

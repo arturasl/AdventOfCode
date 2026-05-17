@@ -41,11 +41,11 @@ nextPwd s = snd $ T.foldr inc (1, "") s
 nextOkPwd :: T.Text -> T.Text
 nextOkPwd s = head . dropWhile (not . isValid) $ iterate nextPwd s
 
-solve :: [T.Text] -> [T.Text]
-solve = map (nextOkPwd . nextPwd)
+solve :: T.Text -> T.Text
+solve = nextOkPwd . nextPwd . nextOkPwd
 
 main :: IO ()
 main = do
   contents <- TIO.getContents
   let lns = filter (not . T.null) . map T.strip $ T.lines contents
-  print $ solve lns
+  mapM_ (print . solve) lns

@@ -5,7 +5,7 @@ license:            MIT
 license-file:       LICENSE
 build-type:         Simple
 common warnings
-    ghc-options: -Wall
+    ghc-options: -Wall -O2
 
 executable d01p1
     import:           warnings

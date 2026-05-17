@@ -75,7 +75,7 @@ search t rules = search' (Set.singleton (0, t)) rules $ Ctx {memo = Map.singleto
 
 solve :: [T.Text] -> Int
 -- solve lns = traceShow (applyRules "CaCaCaCaCa" swappedRules) 0
-solve lns = traceShow (its resultCtx) (Map.findWithDefault (-1) "e" $ memo resultCtx)
+solve lns = 0 -- traceShow (its resultCtx) (Map.findWithDefault (-1) "e" $ memo resultCtx)
   where
     (ruleStrs, molecule) = (init lns, last lns)
     rules = map parseRule ruleStrs
