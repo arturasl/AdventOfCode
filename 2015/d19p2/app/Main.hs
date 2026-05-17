@@ -1,16 +1,13 @@
 module Main where
 
-import Data.Bifunctor qualified as Bi
 import Data.Hashable qualified as Hash
 import Data.Map.Strict qualified as Map
+import Data.Maybe
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.IO qualified as TIO
 import Debug.Trace (traceShow)
 import System.IO (BufferMode (NoBuffering), hSetBuffering, stderr)
-
-trc :: (Show a) => a -> a
-trc x = traceShow x x
 
 data Ctx = Ctx {memo :: !(Map.Map T.Text Int), its :: !Int} deriving (Show)
 
@@ -22,13 +19,13 @@ parseRule r
     wrds = T.words r
 
 applyRule :: T.Text -> (T.Text, T.Text) -> Set.Set T.Text
-applyRule t (sr, rp) = Set.fromList oks
+applyRule t (sr, rp) =
+  Set.fromList
+    [ T.concat [pre, rp, T.drop searchLen post]
+    | (pre, post) <- T.breakOnAll sr t
+    ]
   where
-    splits = zip (T.inits t) (T.tails t)
-    okSplits = filter (\(_, suffix) -> sr `T.isPrefixOf` suffix) splits
     searchLen = T.length sr
-    okSplitWoSearch = map (Bi.second (T.drop searchLen)) okSplits
-    oks = map (\(prefix, suffix) -> T.concat [prefix, rp, suffix]) okSplitWoSearch
 
 applyRules :: T.Text -> [(T.Text, T.Text)] -> Set.Set T.Text
 applyRules t rules = Set.unions $ map (applyRule t) rules
@@ -41,7 +38,6 @@ empty = (0, 0)
 simpleDiff :: T.Text -> PriorityKey
 simpleDiff cur = (T.length cur `div` 4, Hash.hash cur)
 
--- CRnSiRnFYCaRnFArArFArAl
 search' :: Set.Set (PriorityKey, T.Text) -> [(T.Text, T.Text)] -> Ctx -> Ctx
 search' origSearchSpace rules ctx@Ctx {memo, its}
   | its > 10000000 = ctx
@@ -49,8 +45,7 @@ search' origSearchSpace rules ctx@Ctx {memo, its}
   | T.null t || "e" `T.isInfixOf` t = search' searchSpace rules Ctx {memo, its = nextIts}
   | otherwise = search' nextSearchSpace rules Ctx {memo = nextMemo, its = nextIts}
   where
-    t = snd $ Set.elemAt 0 origSearchSpace
-    searchSpace = Set.drop 1 origSearchSpace
+    ((_, t), searchSpace) = fromJust $ Set.minView origSearchSpace
     nextIts =
       ( if its `mod` 10000 == 0
           then
