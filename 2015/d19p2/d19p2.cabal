@@ -21,7 +21,8 @@ executable d01p1
       bytestring >= 0.12.2,
       scientific >= 0.3.8,
       vector >= 0.13.2,
-      extra >= 1.8.1
+      extra >= 1.8.1,
+      hashable
     hs-source-dirs:   app
     default-language: GHC2021
     default-extensions:

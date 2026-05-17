@@ -1,6 +1,7 @@
 module Main where
 
 import Data.Bifunctor qualified as Bi
+import Data.Hashable qualified as Hash
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
@@ -32,10 +33,18 @@ applyRule t (sr, rp) = Set.fromList oks
 applyRules :: T.Text -> [(T.Text, T.Text)] -> Set.Set T.Text
 applyRules t rules = Set.unions $ map (applyRule t) rules
 
+type PriorityKey = (Int, Int)
+
+empty :: PriorityKey
+empty = (0, 0)
+
+simpleDiff :: T.Text -> PriorityKey
+simpleDiff cur = (T.length cur `div` 4, Hash.hash cur)
+
 -- CRnSiRnFYCaRnFArArFArAl
-search' :: Set.Set (Int, T.Text) -> [(T.Text, T.Text)] -> Ctx -> Ctx
+search' :: Set.Set (PriorityKey, T.Text) -> [(T.Text, T.Text)] -> Ctx -> Ctx
 search' origSearchSpace rules ctx@Ctx {memo, its}
-  | its > 1000000 = ctx
+  | its > 10000000 = ctx
   | Set.null origSearchSpace = ctx
   | T.null t || "e" `T.isInfixOf` t = search' searchSpace rules Ctx {memo, its = nextIts}
   | otherwise = search' nextSearchSpace rules Ctx {memo = nextMemo, its = nextIts}
@@ -70,10 +79,10 @@ search' origSearchSpace rules ctx@Ctx {memo, its}
     nextTs = applyRules t rules
     addSearchSpace = filter (\(nt, nd) -> nd < Map.findWithDefault (nd + 1) nt memo) $ map (,dist + 1) (Set.toList nextTs)
     nextMemo = Map.fromList addSearchSpace `Map.union` memo
-    nextSearchSpace = Set.fromList (map (\(f, _) -> (T.length f, f)) addSearchSpace) `Set.union` searchSpace
+    nextSearchSpace = Set.fromList (map (\(f, _) -> (simpleDiff f, f)) addSearchSpace) `Set.union` searchSpace
 
 search :: T.Text -> [(T.Text, T.Text)] -> Ctx
-search t rules = search' (Set.singleton (0, t)) rules $ Ctx {memo = Map.singleton t 0, its = 0}
+search t rules = search' (Set.singleton (empty, t)) rules $ Ctx {memo = Map.singleton t 0, its = 0}
 
 solve :: [T.Text] -> Int
 -- solve lns = traceShow (applyRules "CaCaCaCaCa" swappedRules) 0
