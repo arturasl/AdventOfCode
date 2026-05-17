@@ -1,6 +1,7 @@
 module Main where
 
 import Data.Bifunctor qualified as Bi
+import Data.List qualified as List
 import Data.Map.Strict qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
@@ -32,18 +33,33 @@ applyRule t (sr, rp) = Set.fromList oks
 applyRules :: T.Text -> [(T.Text, T.Text)] -> Set.Set T.Text
 applyRules t rules = Set.unions $ map (applyRule t) rules
 
+type PriorityKey = (Int, Int, Int)
+
+empty :: PriorityKey
+empty = (0, 0, 0)
+
+simpleDiff :: T.Text -> T.Text -> PriorityKey
+-- simpleDiff cur target = (-samePrefixLen, 0, -srtVal)
+-- simpleDiff cur target = (-(samePrefixLen * srtVal * sameSuffixLen), 0, 0)
+simpleDiff cur target = (-srtVal, samePrefixLen, sameSuffixLen)
+  where
+    samePrefixLen = length . takeWhile (uncurry (==)) $ T.zip cur target
+    sameSuffixLen = length . takeWhile (uncurry (==)) $ T.zip (T.reverse cur) (T.reverse target)
+    srtLetters w = List.sort $ T.unpack w
+    srtVal = length . takeWhile (uncurry (==)) $ zip (srtLetters cur) (srtLetters target)
+
 -- CRnSiRnFYCaRnFArArFArAl
-search' :: Set.Set (Int, T.Text) -> [(T.Text, T.Text)] -> Ctx -> Ctx
-search' origSearchSpace rules ctx@Ctx {memo, its}
-  | its > 1000000 = ctx
+search' :: T.Text -> Set.Set (PriorityKey, T.Text) -> [(T.Text, T.Text)] -> Ctx -> Ctx
+search' target origSearchSpace rules ctx@Ctx {memo, its}
+  | its > 10000000 = ctx
   | Set.null origSearchSpace = ctx
-  | T.null t || "e" `T.isInfixOf` t = search' searchSpace rules Ctx {memo, its = nextIts}
-  | otherwise = search' nextSearchSpace rules Ctx {memo = nextMemo, its = nextIts}
+  | T.length t >= T.length target = search' target searchSpace rules Ctx {memo, its = nextIts}
+  | otherwise = search' target nextSearchSpace rules Ctx {memo = nextMemo, its = nextIts}
   where
     t = snd $ Set.elemAt 0 origSearchSpace
     searchSpace = Set.drop 1 origSearchSpace
     nextIts =
-      ( if its `mod` 10000 == 0
+      ( if its `mod` 100 == 0
           then
             traceShow
               ( "its: "
@@ -53,7 +69,7 @@ search' origSearchSpace rules ctx@Ctx {memo, its}
                   ++ ", memo: "
                   ++ show (length memo)
                   ++ ", ans: "
-                  ++ show (Map.findWithDefault (-1) "e" memo)
+                  ++ show (Map.findWithDefault (-1) target memo)
                   ++ ", longest: "
                   ++ show (maximum . map T.length $ Map.keys memo)
                   ++ ", shortest: "
@@ -70,19 +86,19 @@ search' origSearchSpace rules ctx@Ctx {memo, its}
     nextTs = applyRules t rules
     addSearchSpace = filter (\(nt, nd) -> nd < Map.findWithDefault (nd + 1) nt memo) $ map (,dist + 1) (Set.toList nextTs)
     nextMemo = Map.fromList addSearchSpace `Map.union` memo
-    nextSearchSpace = Set.fromList (map (\(f, _) -> (T.length f, f)) addSearchSpace) `Set.union` searchSpace
+    nextSearchSpace = Set.fromList (map (\(f, _) -> (simpleDiff f target, f)) addSearchSpace) `Set.union` searchSpace
 
 search :: T.Text -> [(T.Text, T.Text)] -> Ctx
-search t rules = search' (Set.singleton (0, t)) rules $ Ctx {memo = Map.singleton t 0, its = 0}
+search t rules = search' t (Set.singleton (empty, "e")) rules $ Ctx {memo = Map.singleton "e" 0, its = 0}
 
 solve :: [T.Text] -> Int
 -- solve lns = traceShow (applyRules "CaCaCaCaCa" swappedRules) 0
-solve lns = traceShow (its resultCtx) (Map.findWithDefault (-1) "e" $ memo resultCtx)
+-- its: 131056, res: 16
+solve lns = traceShow (its resultCtx) (Map.findWithDefault (-1) molecule $ memo resultCtx)
   where
     (ruleStrs, molecule) = (init lns, last lns)
     rules = map parseRule ruleStrs
-    swappedRules = map (\(l, r) -> (r, l)) rules
-    resultCtx = search molecule swappedRules
+    resultCtx = search molecule rules
 
 main :: IO ()
 main = do
