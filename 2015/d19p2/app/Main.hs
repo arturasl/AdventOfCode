@@ -40,7 +40,7 @@ simpleDiff cur = (T.length cur `div` 4, Hash.hash cur)
 
 search' :: Set.Set (PriorityKey, T.Text) -> [(T.Text, T.Text)] -> Ctx -> Ctx
 search' origSearchSpace rules ctx@Ctx {memo, its}
-  | its > 10000000 = ctx
+  | its > 100000 = ctx
   | Set.null origSearchSpace = ctx
   | T.null t || "e" `T.isInfixOf` t = search' searchSpace rules Ctx {memo, its = nextIts}
   | otherwise = search' nextSearchSpace rules Ctx {memo = nextMemo, its = nextIts}
@@ -80,7 +80,6 @@ search :: T.Text -> [(T.Text, T.Text)] -> Ctx
 search t rules = search' (Set.singleton (empty, t)) rules $ Ctx {memo = Map.singleton t 0, its = 0}
 
 solve :: [T.Text] -> Int
--- solve lns = traceShow (applyRules "CaCaCaCaCa" swappedRules) 0
 solve lns = traceShow (its resultCtx) (Map.findWithDefault (-1) "e" $ memo resultCtx)
   where
     (ruleStrs, molecule) = (init lns, last lns)
