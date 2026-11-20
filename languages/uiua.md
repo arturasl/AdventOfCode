@@ -41,3 +41,11 @@
 # Add second and 4th values together.
 +⋅⊙⋅∘ 1 2 3 4
 ```
+
+```
+# Output comments: additional # after the comment symbol (below its 2
+# additional `#`s). After code is run, interpreter will show that many (2 in
+# this case) values from the stack.
+1 2 3
+###
+```
